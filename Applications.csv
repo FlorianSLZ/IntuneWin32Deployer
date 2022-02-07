@@ -1,4 +1,4 @@
-id;Name;Description;type;install;uninstall;as;publisher;parameter
+id;Name;Description;manager;install;uninstall;as;publisher;parameter
 vlc;;;choco;;;;;
-Google.Chrome;;winget;;;;;
-;DesktopInfo;Hostname on Desktop;chustom;;;;scloud.work;
+Google.Chrome;;;winget;;;;;
+;DesktopInfo;Hostname on Desktop;;;;;scloud.work;

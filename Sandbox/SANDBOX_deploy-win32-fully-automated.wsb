@@ -1,0 +1,11 @@
+<Configuration>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>C:\GitHub\deploy-win32-fully-automated</HostFolder>
+      <ReadOnly>false</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <Command>powershell -executionpolicy unrestricted -command "start powershell {-noexit -file C:\Users\WDAGUtilityAccount\Desktop\deploy-win32-fully-automated\Sandbox\SANDBOX_deploy-win32-fully-automated.ps1}"</Command>
+  </LogonCommand>
+</Configuration>

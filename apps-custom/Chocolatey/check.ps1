@@ -1,4 +1,4 @@
-﻿$ProgramName = "Chocolatey"
+$ProgramName = "Chocolatey"
 
 $localprograms = C:\ProgramData\chocolatey\choco.exe list --localonly
 if ($localprograms -like "*$ProgramName*"){

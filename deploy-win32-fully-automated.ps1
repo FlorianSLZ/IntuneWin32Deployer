@@ -65,13 +65,13 @@ function Create-WingetWin32App($Prg){
     New-Item $Prg_Path -type Directory -Force
 
     # create install file
-    $(Get-Content "$Repo_Path\template\winget\install.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1"
+    $(Get-Content "$Repo_Path\template\winget\install.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding ascii
 
     # create uninstall file
-    $(Get-Content "$Repo_Path\template\winget\uninstall.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"
+    $(Get-Content "$Repo_Path\template\winget\uninstall.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1" -Encoding ascii
 
     # create validation file
-    $(Get-Content "$Repo_Path\template\winget\check.ps1").replace("WINGETPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1"
+    $(Get-Content "$Repo_Path\template\winget\check.ps1").replace("WINGETPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding ascii
 
     # check appliaction name and set if not present
     if(!$Prg.name){
@@ -110,16 +110,16 @@ function Create-ChocoWin32App($Prg){
     New-Item $Prg_Path -type Directory -Force
 
     # create install file
-    $(Get-Content ".\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1"
+    $(Get-Content ".\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding ascii
 
     # create param file
     if($Prg.parameter){New-Item -Path "$Prg_Path\parameter.txt" -ItemType "file" -Force -Value $Prg.parameter}
 
     # create uninstall file
-    $(Get-Content ".\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"
+    $(Get-Content ".\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"  -Encoding ascii
 
     # create validation file
-    $(Get-Content ".\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1"
+    $(Get-Content ".\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding ascii
 
     # check appliaction name and set if not present
     if(!$Prg.name){
@@ -203,7 +203,11 @@ function Create-CustomWin32App($Prg){
     if(Get-ChildItem $Prg_Path -Filter "$($Prg.id).png"){
         $Prg_img = "$Prg_Path\$($Prg.id).png"
     }else{
-        $Prg_img = "$Repo_Path\template\custom\custom-managed.png"
+        if(Get-ChildItem $Prg_Path -Filter "$($Prg.name).png"){
+            $Prg_img = "$Prg_Path\$($Prg.name).png"
+        }else{
+            $Prg_img = "$Repo_Path\template\custom\program.png"
+        }
     }
 
     # Create intunewin
@@ -241,6 +245,7 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem 2004
 
         # picture for win32 app (shown in company portal)
+        $Prg_img
         $Icon = New-IntuneWin32AppIcon -FilePath $Prg_img
 
         # Install/uninstall commands

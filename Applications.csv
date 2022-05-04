@@ -9,5 +9,5 @@ shotcut;;;choco;;;;;;
 vscode;;;choco;;;;;;
 adobereader;;;choco;;;;;;
 Google.Chrome;;;winget;;;;;;
-;Chocolatey Updater;Updates package installed with chocolatey;;;;;scloud.work;;
-;DesktopInfo;Hostname on Desktop;;;;;scloud.work;;
+;Chocolatey Updater;Updates package installed with chocolatey;;;;system;scloud.work;;
+;DesktopInfo;Hostname on Desktop;;;;system;scloud.work;;

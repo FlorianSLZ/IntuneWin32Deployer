@@ -1,5 +1,13 @@
-<#Requires -Modules IntuneWin32App, MSAL.PS, AzureAD  
-#Install-Module IntuneWin32App, MSAL.PSAuth, AzureAD  -Scope CurrentUser -Force
+<#Requires -Modules IntuneWin32App, AzureAD  #>
+Install-Module NuGet, IntuneWin32App, AzureAD  -Scope CurrentUser -Force
+
+# temporarry fix for IntuneWin32App module
+$oldLine = '$ScriptContent = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([System.IO.File]::ReadAllBytes("$($ScriptFile)") -join [Environment]::NewLine))'
+$newLine = '$ScriptContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes("$($ScriptFile)"))'
+$File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
+(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File
+
+
 <#
     .SYNOPSIS
     Packages choco, winget and custom apps for MEM (Intune) deployment.
@@ -65,13 +73,13 @@ function Create-WingetWin32App($Prg){
     New-Item $Prg_Path -type Directory -Force
 
     # create install file
-    $(Get-Content "$Repo_Path\template\winget\install.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding ascii
+    $(Get-Content "$Repo_Path\template\winget\install.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
 
     # create uninstall file
-    $(Get-Content "$Repo_Path\template\winget\uninstall.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1" -Encoding ascii
+    $(Get-Content "$Repo_Path\template\winget\uninstall.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1" -Encoding utf8
 
     # create validation file
-    $(Get-Content "$Repo_Path\template\winget\check.ps1").replace("WINGETPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding ascii
+    $(Get-Content "$Repo_Path\template\winget\check.ps1").replace("WINGETPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
 
     # check appliaction name and set if not present
     if(!$Prg.name){
@@ -110,16 +118,16 @@ function Create-ChocoWin32App($Prg){
     New-Item $Prg_Path -type Directory -Force
 
     # create install file
-    $(Get-Content ".\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding ascii
+    $(Get-Content ".\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
 
     # create param file
     if($Prg.parameter){New-Item -Path "$Prg_Path\parameter.txt" -ItemType "file" -Force -Value $Prg.parameter}
 
     # create uninstall file
-    $(Get-Content ".\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"  -Encoding ascii
+    $(Get-Content ".\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"  -Encoding utf8
 
     # create validation file
-    $(Get-Content ".\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding ascii
+    $(Get-Content ".\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
 
     # check appliaction name and set if not present
     if(!$Prg.name){
@@ -178,10 +186,8 @@ function Create-Chocolatey4Dependency {
 function CheckInstall-LocalChocolatey{
     # Check if chocolatey is installed
     $CheckChocolatey = C:\ProgramData\chocolatey\choco.exe list --localonly
-    if ($CheckChocolatey){
-        Write-Host "Chocolatey aleaready installed" -Foregroundcolor green
-    }else{
-        Write-Host "Instaling Chocolatey"
+    if (!$CheckChocolatey){
+        Write-Host "Instaling Chocolatey (on local machine)"
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
     }
 
@@ -267,6 +273,7 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         # Check dependency
         if($Prg.dependency){
             Write-Host "  Processing dependency $($Prg.dependency) to $($Prg.Name)" -ForegroundColor Cyan
+            $Session = Connect-MSIntuneGraph -TenantID $TenantName
             $UploadedApp = Get-IntuneWin32App | where {$_.DisplayName -eq $Prg.Name} | select name, id
             $DependendProgram = Get-IntuneWin32App | where {$_.DisplayName -eq $Prg.dependency} | select name, id
             if(!$DependendProgram){

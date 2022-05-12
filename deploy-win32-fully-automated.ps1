@@ -1,11 +1,13 @@
-<#Requires -Modules IntuneWin32App, AzureAD  #>
-Install-Module NuGet, IntuneWin32App, AzureAD  -Scope CurrentUser -Force
+# Requires -Modules IntuneWin32App, AzureAD 
+# Install-Module NuGet, MSAL.PS, IntuneWin32App, AzureAD  -Scope CurrentUser -Force
 
-# temporarry fix for IntuneWin32App module
+<# temporarry fix for IntuneWin32App module
 $oldLine = '$ScriptContent = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([System.IO.File]::ReadAllBytes("$($ScriptFile)") -join [Environment]::NewLine))'
 $newLine = '$ScriptContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes("$($ScriptFile)"))'
 $File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
 (Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File
+
+#>
 
 
 <#
@@ -251,7 +253,6 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem 2004
 
         # picture for win32 app (shown in company portal)
-        $Prg_img
         $Icon = New-IntuneWin32AppIcon -FilePath $Prg_img
 
         # Install/uninstall commands

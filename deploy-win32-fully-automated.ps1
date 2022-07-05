@@ -142,7 +142,7 @@ function Create-ChocoWin32App($Prg){
 
     # check appliaction description and set if not present
     if(!$Prg.Description){
-        $ChocoDetails = '(' + $((choco search $Prg.name --by-id-only --exact -v) -join '|') + ')'
+        $ChocoDetails = '(' + $((choco search $Prg.id --by-id-only --exact -v) -join '|') + ')'
         $pos = $ChocoDetails.IndexOf("Description:")
         $ChocoDescriptionPlus = $ChocoDetails.Substring($pos+13)
         $pos = $ChocoDescriptionPlus.IndexOf("|")

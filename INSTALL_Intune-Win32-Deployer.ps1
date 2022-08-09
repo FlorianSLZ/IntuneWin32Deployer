@@ -1,6 +1,6 @@
 #############################################################################################################
 #
-#   Tool:       Intune Win32 Deployer
+#   Tool:       Intune Win32 Deployer - Installer
 #   Author:     Florian Salzmann
 #   Website:    http://www.scloud.work
 #   Twitter:    https://twitter.com/FlorianSLZ

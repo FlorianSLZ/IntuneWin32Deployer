@@ -1,0 +1,25 @@
+id;Name;Description;manager;install;uninstall;as;publisher;parameter;dependency
+7zip;;;choco;;;;;;
+adobereader;;;choco;;;;;;
+citrix-workspace-ltsr;;;choco;;;;;;
+gimp;;;choco;;;;;;
+googlechrome;;;choco;;;;;;
+irfanview;;;choco;;;;;;
+key-n-stroke;;;choco;;;;;;
+makemeadmin;;;choco;;;;;;
+microsoft-teams.install;;;choco;;;;;;
+putty;;;choco;;;;;;
+shotcut;;;choco;;;;;;
+teamviewer;;;choco;;;;;;
+vlc;;;choco;;;;;;
+vscode;;;choco;;;;;;
+webex;;;choco;;;;;;
+zoom;;;choco;;;;;;
+Google.Chrome;;;winget;;;;;;
+;Chocolatey Updater;Updates package installed with chocolatey;;;;system;;;
+;DesktopInfo;Hostname on Desktop;;;;system;;;
+;Windows Updates;Trigers Windows Updates Once;;;;system;;;
+;MS Apps Business;Microsoft Office Apps for Business x64;;;;system;;;
+;4net WIN Basics;Windows cleanup;;;;system;;;
+;Proactive Remediation - Remove COPYs;Removes duplicated shortcuts from Desktop;;;;system;;;
+;Proactive Remediation - Public Desktop;Clears Public Desktop icons;;;;system;;;

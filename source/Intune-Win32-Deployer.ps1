@@ -78,6 +78,17 @@ function SearchAdd-ChocoApp {
 
 }
 
+function SearchAdd-WinGetApp {
+    $Chocos2add = choco search $searchText | Out-GridView -OutputMode Multiple -Title "Select Applications to add"
+    foreach($ChocoApp in $Chocos2add){
+        # add to CSV
+
+        # xy added, wanna deploy?
+
+    }
+
+}
+
 function Create-WingetWin32App($Prg){
     Write-Host "Creat win32 package for $($Prg.id) (Microsoft Package Manager)" -Foregroundcolor cyan
 
@@ -303,12 +314,14 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
 
 }
 
-$Prg_selection = Read-AppRepo | Out-GridView -OutputMode Multiple -Title "Select Applications to create and upload"
-if($Prg_selection.manager -like "*choco*"){CheckInstall-LocalChocolatey}
-if($Prg_selection.manager -like "*choco*"){Create-Chocolatey4Dependency}
+function Import-FromCatalog{
+    $Prg_selection = Read-AppRepo | Out-GridView -OutputMode Multiple -Title "Select Applications to create and upload"
+    if($Prg_selection.manager -like "*choco*"){CheckInstall-LocalChocolatey}
+    if($Prg_selection.manager -like "*choco*"){Create-Chocolatey4Dependency}
 
-foreach($Prg in $Prg_selection){
-    if($Prg.manager -eq "choco"){Create-ChocoWin32App $Prg}
-    elseif($Prg.manager -eq "winget"){Create-WingetWin32App $Prg}
-    else{Create-CustomWin32App $Prg}
+    foreach($Prg in $Prg_selection){
+        if($Prg.manager -eq "choco"){Create-ChocoWin32App $Prg}
+        elseif($Prg.manager -eq "winget"){Create-WingetWin32App $Prg}
+        else{Create-CustomWin32App $Prg}
+    }
 }

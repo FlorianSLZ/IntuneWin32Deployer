@@ -1,21 +1,22 @@
-<#####################################################################################
-                                                                     	       	    
-		Titel:          GUI für UserCreation				                      		
-		Autor:          Florian Salzmann		  						  			
-		Firma:          4net AG                                           			                                    			                                         			
-                                                                             		
-        Description:    UI 
-        
-                                                                             		
-#####################################################################################>
+#############################################################################################################
+#
+#   Tool:       Intune Win32 Deployer - UI
+#   Author:     Florian Salzmann
+#   Website:    http://www.scloud.work
+#   Twitter:    https://twitter.com/FlorianSLZ
+#   LinkedIn:   https://www.linkedin.com/in/fsalzmann/
+#
+#############################################################################################################
 
-######################################################################################
+# Basic Variables 
+$global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
+$global:ProgramVar = $global:ProgramPath + '\ressources\variables.xml'
+$global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
 
 
 
 # System Rquiremend
 Function Check-SystemRequirements() {
-    # Run as Admin?
 
     # Modules?
 
@@ -23,18 +24,18 @@ Function Check-SystemRequirements() {
 
 # Einlesen der Initial Variabeln (OU Pfade, Lizenzgruppen)
 Function Get-InitialVariables() {
-    if(![System.IO.File]::Exists($global:InitialVariablesLocation)){
+    if(![System.IO.File]::Exists($global:ProgramVar)){
         
     }
     else {
-        $InitialVAR = Import-Clixml -Path $global:InitialVariablesLocation 
+        $InitialVAR = Import-Clixml -Path $global:ProgramVar 
         $global:Publisher = $InitialVAR.Publisher
         $global:TenantName = $InitialVAR.TenantName
     }
     
 
     # Pop up um Variabeln anzupassen
-    $NewInitialVariables = PopUP "Daten eingeben" "AD Pfad SuS" "Lizenz Gruppe SuS" "AD Pfad MA" "Lizenz Gruppe MA" "AD Pfad Klassen"
+    $NewInitialVariables = Get-ProgramVar "Type in your data" "Tenantname" "Publisher"
     $global:ADPathSuS = $NewInitialVariables[0]
     $global:LizenzGroupSuS = $NewInitialVariables[1]
     $global:ADPathMA = $NewInitialVariables[2]
@@ -42,12 +43,12 @@ Function Get-InitialVariables() {
     $global:KlassenOU = $NewInitialVariables[4]
 
     $InitialVariables = New-Object psobject -Property @{ADPathSuS = $global:ADPathSuS; ADPathMA = $global:ADPathMA; LizenzGroupSuS = $global:LizenzGroupSuS; LizenzGroupMA = $global:LizenzGroupMA;KlassenOU = $global:KlassenOU}
-    Export-Clixml -Path $global:InitialVariablesLocation -InputObject $InitialVariables
+    Export-Clixml -Path $global:ProgramVar -InputObject $InitialVariables -Force
 
 } 
 
-# PopUP für die Initial Variabeln (GUI) Quelle: https://syscloudpro.com/2014/03/11/powershell-custom-gui-input-box-for-passing-values-to-variables/ 
-function PopUP ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
+# PopUP für die Initial Variabeln (GUI) 
+function Get-ProgramVar ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
 
     ###################Load Assembly for creating form & button######
     [void][System.Reflection.Assembly]::LoadWithPartialName( "System.Windows.Forms")
@@ -72,6 +73,7 @@ function PopUP ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
     $textLabel2.Top = 55;
     $textLabel2.Text = $lb2;
     
+    <#
     ##############Define text label3
     
     $textLabel3 = New-Object "System.Windows.Forms.Label";
@@ -90,7 +92,7 @@ function PopUP ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
     $textLabel5.Left = 25;
     $textLabel5.Top = 175;
     $textLabel5.Text = $lb5;
-    
+    #>
     ############Define text box1 for input
     $textBox1 = New-Object "System.Windows.Forms.TextBox";
     $textBox1.Left = 150;
@@ -104,6 +106,7 @@ function PopUP ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
     $textBox2.Top = 50;
     $textBox2.width = 200;
     
+    <#
     ############Define text box3 for input
     $textBox3 = New-Object "System.Windows.Forms.TextBox";
     $textBox3.Left = 150;
@@ -121,10 +124,10 @@ function PopUP ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
     $textBox5.Left = 150;
     $textBox5.Top = 170;
     $textBox5.width = 200;
-    
+    #>
     #############Define default values for the input boxes
-    $textBox1.Text = $global:ADPathSuS;
-    $textBox2.Text = $global:LizenzGroupSuS;
+    $textBox1.Text = $global:Tenant;
+    $textBox2.Text = $global:Publisher;
     $textBox3.Text = $global:ADPathMA;
     $textBox4.Text = $global:LizenzGroupMA;
     $textBox5.Text = $global:KlassenOU;
@@ -175,7 +178,7 @@ function Get-MAorSUS {
     $FormMAorSus.StartPosition = "CenterScreen"
     $FormMAorSus.Size = New-Object System.Drawing.Size(400, 100)
     $FormMAorSus.Text = "Mitarbeiter oder SuS importieren?"
-    $FormMAorSus.Icon = $global:ProgrammPfad + "ProgrammData\img\4net.ico"
+    $FormMAorSus.Icon = $global:ProgramIcon
     ###################################################################################################################
 
     # Button "MAs einlesen"
@@ -229,7 +232,7 @@ function Get-FinishMessage () {
     $FormFinishMessage.StartPosition = "CenterScreen"
     $FormFinishMessage.Size = New-Object System.Drawing.Size(300, 400)
     $FormFinishMessage.Text = "Import abgeschlossen"
-    $FormFinishMessage.Icon = $global:ProgrammPfad + "ProgrammData\img\4net.ico"
+    $FormFinishMessage.Icon = $global:ProgramIcon
     ###################################################################################################################
 
     # Button "Erstellte Benutzer"
@@ -260,34 +263,22 @@ function Get-FinishMessage () {
     [void] $FormFinishMessage.ShowDialog()
 }
 
-# Funktionen ENDE
+# functions - END
 ######################################################################################
 
 ######################################################################################
-# Basic Variables START
-$global:ProgrammPfad = "C:\Users\Public\4net-UserCreation\"
-# Data Stores
-$global:InitialVariablesLocation = $global:ProgrammPfad + 'ProgrammData\InitialVariabeln.xml'
-$global:CSV4Import = ""
-$global:MAorSuS = ""
+
 
 # XML für Initial Variables
-if(![System.IO.File]::Exists($global:InitialVariablesLocation)){
+if(![System.IO.File]::Exists($global:ProgramVar)){
     Get-InitialVariables
 }
 else {
-    $InitialVAR = Import-Clixml -Path $global:InitialVariablesLocation 
-    $global:ADPathSuS = $InitialVAR.ADPathSuS
-    $global:ADPathMA = $InitialVAR.ADPathMA
-    $global:LizenzGroupSuS = $InitialVAR.LizenzGroupSuS
-    $global:LizenzGroupMA = $InitialVAR.LizenzGroupMA
-    $global:KlassenOU = $InitialVAR.KlassenOU
+    $InitialVAR = Import-Clixml -Path $global:ProgramVar 
+    $global:Tenant = $InitialVAR.Tenant
+    $global:Publisher = $InitialVAR.Publisher
 }
 
-# Basic Variables END
-######################################################################################
-
-######################################################################################
 
 
 # Colors
@@ -305,7 +296,7 @@ $objForm.Backcolor = $Color_bg
 $objForm.StartPosition = "CenterScreen"
 $objForm.Size = New-Object System.Drawing.Size(800, 400)
 $objForm.Text = "Intune win32 Deployer"
-$objForm.Icon = $global:ProgrammPfad + "template\scloud.ico"
+$objForm.Icon = $global:ProgramIcon
 
 # Button "Deploy from personal Catalog"
 $Button_Deploy = New-Object System.Windows.Forms.Button
@@ -316,7 +307,7 @@ $Button_Deploy.Name = "Deploy from personal Catalog"
 $Button_Deploy.backcolor = $Color_Button
 $Button_Deploy.Add_MouseHover( {$Button_Deploy.backcolor = $Color_ButtonHover})
 $Button_Deploy.Add_MouseLeave( {$Button_Deploy.backcolor = $Color_Button})
-$Button_Deploy.Add_Click( {Get-CSV4Import})
+$Button_Deploy.Add_Click( {Import-FromCatalog})
 $objForm.Controls.Add($Button_Deploy)
 
 # Button "Add Chocolatey App"
@@ -328,7 +319,7 @@ $Button_AddChoco.Name = "Add Chocolatey App"
 $Button_AddChoco.backcolor = $Color_Button
 $Button_AddChoco.Add_MouseHover( {$Button_AddChoco.backcolor = $Color_ButtonHover})
 $Button_AddChoco.Add_MouseLeave( {$Button_AddChoco.backcolor = $Color_Button})
-$Button_AddChoco.Add_Click( {Get-InitialVariables})
+$Button_AddChoco.Add_Click( {SearchAdd-ChocoApp})
 $objForm.Controls.Add($Button_AddChoco)
 
 # Button "Add Winget App"
@@ -340,8 +331,20 @@ $Button_AddWinget.Name = "Add Winget App"
 $Button_AddWinget.backcolor = $Color_Button
 $Button_AddWinget.Add_MouseHover( {$Button_AddWinget.backcolor = $Color_ButtonHover})
 $Button_AddWinget.Add_MouseLeave( {$Button_AddWinget.backcolor = $Color_Button})
-$Button_AddWinget.Add_Click( {Get-InitialVariables})
+$Button_AddWinget.Add_Click( {SearchAdd-WinGetApp} )
 $objForm.Controls.Add($Button_AddWinget)
+
+# Button "Change"
+$Button_Change = New-Object System.Windows.Forms.Button
+$Button_Change.Location = New-Object System.Drawing.Size(30, 110)
+$Button_Change.Size = New-Object System.Drawing.Size(200, 30)
+$Button_Change.Text = "Change"
+$Button_Change.Name = "Change"
+$Button_Change.backcolor = $Color_Button
+$Button_Change.Add_MouseHover( {$Button_Change.backcolor = $Color_ButtonHover})
+$Button_Change.Add_MouseLeave( {$Button_Change.backcolor = $Color_Button})
+$Button_Change.Add_Click( {Get-InitialVariables})
+$objForm.Controls.Add($Button_Change)
 
 # Button "Cancel"
 $CancelButton = New-Object System.Windows.Forms.Button

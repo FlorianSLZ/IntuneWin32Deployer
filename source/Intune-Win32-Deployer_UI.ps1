@@ -14,7 +14,6 @@ $global:ProgramVar = $global:ProgramPath + '\ressources\variables.xml'
 $global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
 
 
-
 # System Rquiremend
 Function Check-SystemRequirements() {
 
@@ -29,20 +28,19 @@ Function Get-InitialVariables() {
     }
     else {
         $InitialVAR = Import-Clixml -Path $global:ProgramVar 
-        $global:Publisher = $InitialVAR.Publisher
         $global:TenantName = $InitialVAR.TenantName
+        $global:Publisher = $InitialVAR.Publisher
+
     }
     
 
     # Pop up um Variabeln anzupassen
     $NewInitialVariables = Get-ProgramVar "Type in your data" "Tenantname" "Publisher"
-    $global:ADPathSuS = $NewInitialVariables[0]
-    $global:LizenzGroupSuS = $NewInitialVariables[1]
-    $global:ADPathMA = $NewInitialVariables[2]
-    $global:LizenzGroupMA = $NewInitialVariables[3]
-    $global:KlassenOU = $NewInitialVariables[4]
+    $global:TenantName = $NewInitialVariables[0]
+    $global:Publisher = $NewInitialVariables[1]
 
-    $InitialVariables = New-Object psobject -Property @{ADPathSuS = $global:ADPathSuS; ADPathMA = $global:ADPathMA; LizenzGroupSuS = $global:LizenzGroupSuS; LizenzGroupMA = $global:LizenzGroupMA;KlassenOU = $global:KlassenOU}
+
+    $InitialVariables = New-Object psobject -Property @{TenantName = $global:TenantName; Publisher = $global:Publisher}
     Export-Clixml -Path $global:ProgramVar -InputObject $InitialVariables -Force
 
 } 
@@ -126,11 +124,8 @@ function Get-ProgramVar ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
     $textBox5.width = 200;
     #>
     #############Define default values for the input boxes
-    $textBox1.Text = $global:Tenant;
+    $textBox1.Text = $global:TenantName;
     $textBox2.Text = $global:Publisher;
-    $textBox3.Text = $global:ADPathMA;
-    $textBox4.Text = $global:LizenzGroupMA;
-    $textBox5.Text = $global:KlassenOU;
     
     #############define OK button
     $button = New-Object "System.Windows.Forms.Button";
@@ -266,20 +261,20 @@ function Get-FinishMessage () {
 # functions - END
 ######################################################################################
 
-######################################################################################
 
 
-# XML für Initial Variables
+# XML for Initial Variables
 if(![System.IO.File]::Exists($global:ProgramVar)){
     Get-InitialVariables
 }
 else {
     $InitialVAR = Import-Clixml -Path $global:ProgramVar 
-    $global:Tenant = $InitialVAR.Tenant
+    $global:TenantName = $InitialVAR.TenantName
     $global:Publisher = $InitialVAR.Publisher
 }
 
-
+# Import functions
+. "$global:ProgramPath\Intune-Win32-Deployer.ps1" -TenantName $global:TenantName -Publisher $global:Publisher
 
 # Colors
 $Color_Button = "#0288d1"
@@ -288,7 +283,7 @@ $Color_bg = "#121212"
 $Color_warning = "#f44336"
 $Color_error = "#ffa726"
 
-# Fenster Gundgerüst
+# Main window
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 $objForm = New-Object System.Windows.Forms.Form
@@ -334,9 +329,27 @@ $Button_AddWinget.Add_MouseLeave( {$Button_AddWinget.backcolor = $Color_Button})
 $Button_AddWinget.Add_Click( {SearchAdd-WinGetApp} )
 $objForm.Controls.Add($Button_AddWinget)
 
+
+# Info Tenant
+$Label_Tenant = New-Object System.Windows.Forms.Label
+$Label_Tenant.Location = New-Object System.Drawing.Size(30, 200)
+$Label_Tenant.Size = New-Object System.Drawing.Size(200, 30)
+$Label_Tenant.Text = "Tenant: $($global:TenantName)"
+$Label_Tenant.ForeColor = "#FFFFFF"
+$objForm.Controls.Add($Label_Tenant)
+
+# Info Publisher
+$Label_Publisher = New-Object System.Windows.Forms.Label
+$Label_Publisher.Location = New-Object System.Drawing.Size(30, 230)
+$Label_Publisher.Size = New-Object System.Drawing.Size(200, 30)
+$Label_Publisher.Text = "Publisher: $($global:Publisher)"
+$Label_Publisher.ForeColor = "#FFFFFF"
+$objForm.Controls.Add($Label_Publisher)
+
+
 # Button "Change"
 $Button_Change = New-Object System.Windows.Forms.Button
-$Button_Change.Location = New-Object System.Drawing.Size(30, 110)
+$Button_Change.Location = New-Object System.Drawing.Size(30, 260)
 $Button_Change.Size = New-Object System.Drawing.Size(200, 30)
 $Button_Change.Text = "Change"
 $Button_Change.Name = "Change"
@@ -348,7 +361,7 @@ $objForm.Controls.Add($Button_Change)
 
 # Button "Cancel"
 $CancelButton = New-Object System.Windows.Forms.Button
-$CancelButton.Location = New-Object System.Drawing.Size(100, 300)
+$CancelButton.Location = New-Object System.Drawing.Size(300, 300)
 $CancelButton.Size = New-Object System.Drawing.Size(100, 25)
 $CancelButton.Text = "Cancel"
 $CancelButton.Name = "Cancel"
@@ -358,5 +371,5 @@ $CancelButton.Add_MouseHover( {$CancelButton.backcolor = $Color_ButtonHover})
 $CancelButton.Add_MouseLeave( {$CancelButton.backcolor = $Color_Button})
 $CancelButton.Add_Click( {$objForm.Close()})
 $objForm.Controls.Add($CancelButton)
-# Fenster anzeigen
+# show window
 [void] $objForm.ShowDialog()

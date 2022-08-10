@@ -258,6 +258,57 @@ function Get-FinishMessage () {
     [void] $FormFinishMessage.ShowDialog()
 }
 
+
+function SearchForm-winget{
+    $form_winget = New-Object System.Windows.Forms.Form
+    $form_winget.Text = 'Data Entry Form'
+    $form_winget.Size = New-Object System.Drawing.Size(300,200)
+    $form_winget.StartPosition = 'CenterScreen'
+
+    $okButton_winget = New-Object System.Windows.Forms.Button
+    $okButton_winget.Location = New-Object System.Drawing.Point(75,120)
+    $okButton_winget.Size = New-Object System.Drawing.Size(75,23)
+    $okButton_winget.Text = 'OK'
+    $okButton_winget.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form_winget.AcceptButton = $okButton_winget
+    $form_winget.Controls.Add($okButton_winget)
+
+    $label_winget = New-Object System.Windows.Forms.Label
+    $label_winget.Location = New-Object System.Drawing.Point(10,20)
+    $label_winget.Size = New-Object System.Drawing.Size(280,20)
+    $label_winget.Text = 'Please enter the exact winget id:'
+    $form_winget.Controls.Add($label_winget)
+
+    $textBox_winget = New-Object System.Windows.Forms.TextBox
+    $textBox_winget.Location = New-Object System.Drawing.Point(10,40)
+    $textBox_winget.Size = New-Object System.Drawing.Size(260,20)
+    $form_winget.Controls.Add($textBox_winget)
+
+    # Button "Find winget apps"
+    $Button_wingetrun = New-Object System.Windows.Forms.Button
+    $Button_wingetrun.Location = New-Object System.Drawing.Size(10, 80)
+    $Button_wingetrun.Size = New-Object System.Drawing.Size(260, 20)
+    $Button_wingetrun.Text = "Find winget apps"
+    $Button_wingetrun.Name = "Find winget apps"
+    $Button_wingetrun.backcolor = $Color_Button
+    $Button_wingetrun.Add_MouseHover( {$Button_wingetrun.backcolor = $Color_ButtonHover})
+    $Button_wingetrun.Add_MouseLeave( {$Button_wingetrun.backcolor = $Color_Button})
+    $Button_wingetrun.Add_Click( {Start-Process "https://winget.run/"} )
+    $form_winget.Controls.Add($Button_wingetrun)
+    
+
+    $form_winget.Topmost = $true
+
+    $form_winget.Add_Shown({$textBox_winget.Select()})
+    $result = $form_winget.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+    {
+        SearchAdd-WinGetApp $textBox_winget.Text
+
+    }
+}
+
 # functions - END
 ######################################################################################
 
@@ -326,8 +377,36 @@ $Button_AddWinget.Name = "Add Winget App"
 $Button_AddWinget.backcolor = $Color_Button
 $Button_AddWinget.Add_MouseHover( {$Button_AddWinget.backcolor = $Color_ButtonHover})
 $Button_AddWinget.Add_MouseLeave( {$Button_AddWinget.backcolor = $Color_Button})
-$Button_AddWinget.Add_Click( {SearchAdd-WinGetApp} )
+$Button_AddWinget.Add_Click( {SearchForm-winget} )
 $objForm.Controls.Add($Button_AddWinget)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Info Tenant

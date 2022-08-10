@@ -78,9 +78,9 @@ function SearchAdd-ChocoApp {
 
 }
 
-function SearchAdd-WinGetApp {
-    $Chocos2add = choco search $searchText | Out-GridView -OutputMode Multiple -Title "Select Applications to add"
-    foreach($ChocoApp in $Chocos2add){
+function SearchAdd-WinGetApp ($searchText) {
+    $winget2add = winget search --id $searchText --exact --accept-source-agreements | Out-GridView -OutputMode Multiple -Title "Select Applications to add"
+    foreach($wingetApp in $winget2add){
         # add to CSV
 
         # xy added, wanna deploy?

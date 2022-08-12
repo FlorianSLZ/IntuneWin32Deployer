@@ -48,8 +48,14 @@ Param (
     [Parameter(Mandatory = $False)]
     [System.String] $Repo_custom = "$PSScriptRoot\apps-custom",
 
+    [Parameter(Mandatory = $False)]
+    [System.String] $Repo_CSV_Path = "$Repo_Path\Applications.csv",
+
     [Parameter(Mandatory = $true)]
     [System.String] $TenantName,
+
+    [Parameter(Mandatory = $False)]
+    [bool] $intunewinonly = $false,
 
     [Parameter(Mandatory = $true)]
     [System.String] $Publisher = "scloud",
@@ -62,29 +68,50 @@ Param (
 )
 
 function Read-AppRepo{
-    $AppRepo = Import-CSV -Path "$Repo_Path\Applications.csv" -delimiter ";"
+    $AppRepo = Import-CSV -Path $Repo_CSV_Path -Encoding UTF8 -Delimiter ";"
     return $AppRepo  
 
 }
 
-function SearchAdd-ChocoApp {
+function Add-AppRepo ($App2Add){
+    $AppRepo = Read-AppRepo
+    $AppRepo += $App2Add
+    $AppRepo | Export-CSV -Path $Repo_CSV_Path -NoTypeInformation -Encoding UTF8 -Delimiter ";"
+}
+
+function SearchAdd-ChocoApp ($searchText) {
     $Chocos2add = choco search $searchText | Out-GridView -OutputMode Multiple -Title "Select Applications to add"
     foreach($ChocoApp in $Chocos2add){
+        # parameter mapping
+        $ChocoApp_new = New-Object PsObject -Property @{ id = "$($ChocoApp.split(' ')[0])" }
         # add to CSV
-
+        Add-AppRepo $ChocoApp_new
         # xy added, wanna deploy?
+        $deployYN = New-Object -ComObject Wscript.Shell
+        if($($deployYN.Popup("Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
+
+        }
+
 
     }
 
 }
 
 function SearchAdd-WinGetApp ($searchText) {
-    $winget2add = winget search --id $searchText --exact --accept-source-agreements | Out-GridView -OutputMode Multiple -Title "Select Applications to add"
-    foreach($wingetApp in $winget2add){
+
+    $winget2add = winget search --id $searchText --exact --accept-source-agreements
+    if($winget2add -like "*$searchText*"){
+        # parameter mapping
+        $WingetApp_new = New-Object PsObject -Property @{ id = "$searchText" }
         # add to CSV
-
+        Add-AppRepo $WingetApp_new
         # xy added, wanna deploy?
+        $deployYN = New-Object -ComObject Wscript.Shell
+        if($($deployYN.Popup("Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
 
+        }
+    }else{
+        Write-Error "ID not found!"
     }
 
 }
@@ -92,18 +119,23 @@ function SearchAdd-WinGetApp ($searchText) {
 function Create-WingetWin32App($Prg){
     Write-Host "Creat win32 package for $($Prg.id) (Microsoft Package Manager)" -Foregroundcolor cyan
 
+    # resolve and nacigate to winget
+    $Path_WingetAll = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
+    if($Path_WingetAll){$Path_Winget = $Path_WingetAll[-1].Path}
+    cd $Path_Winget
+
     # Set and create program folder
     $Prg_Path = "$Repo_winget\$($Prg.id)"
     New-Item $Prg_Path -type Directory -Force
 
     # create install file
-    $(Get-Content "$Repo_Path\template\winget\install.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
+    $(Get-Content "$Repo_Path\ressources\template\winget\install.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
 
     # create uninstall file
-    $(Get-Content "$Repo_Path\template\winget\uninstall.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1" -Encoding utf8
+    $(Get-Content "$Repo_Path\ressources\template\winget\uninstall.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1" -Encoding utf8
 
     # create validation file
-    $(Get-Content "$Repo_Path\template\winget\check.ps1").replace("WINGETPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
+    $(Get-Content "$Repo_Path\ressources\template\winget\check.ps1").replace("WINGETPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
 
     # check appliaction name and set if not present
     if(!$Prg.name){
@@ -127,7 +159,7 @@ function Create-WingetWin32App($Prg){
     if(Get-ChildItem $Prg_Path -Filter "$($Prg.id).png"){
         $Prg_img = "$Prg_Path\$($Prg.id).png"
     }else{
-        $Prg_img = "$Repo_Path\template\winget\winget-managed.png"
+        $Prg_img = "$Repo_Path\ressources\template\winget\winget-managed.png"
     }
 
     # Create intunewin
@@ -142,16 +174,16 @@ function Create-ChocoWin32App($Prg){
     New-Item $Prg_Path -type Directory -Force
 
     # create install file
-    $(Get-Content ".\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
+    $(Get-Content ".\ressources\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
 
     # create param file
     if($Prg.parameter){New-Item -Path "$Prg_Path\parameter.txt" -ItemType "file" -Force -Value $Prg.parameter}
 
     # create uninstall file
-    $(Get-Content ".\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"  -Encoding utf8
+    $(Get-Content ".\ressources\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"  -Encoding utf8
 
     # create validation file
-    $(Get-Content ".\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
+    $(Get-Content ".\ressources\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
 
     # check appliaction name and set if not present
     if(!$Prg.name){
@@ -178,7 +210,7 @@ function Create-ChocoWin32App($Prg){
     if(Get-ChildItem $Prg_Path -Filter "$($Prg.id).png"){
         $Prg_img = "$Prg_Path\$($Prg.id).png"
     }else{
-        $Prg_img = "$Repo_Path\template\choco\choco-managed.png"
+        $Prg_img = "$Repo_Path\ressources\template\choco\choco-managed.png"
     }
 
     # Set Dependency if not defined
@@ -236,7 +268,7 @@ function Create-CustomWin32App($Prg){
         if(Get-ChildItem $Prg_Path -Filter "$($Prg.name).png"){
             $Prg_img = "$Prg_Path\$($Prg.name).png"
         }else{
-            $Prg_img = "$Repo_Path\template\custom\program.png"
+            $Prg_img = "$Repo_Path\ressources\template\custom\program.png"
         }
     }
 

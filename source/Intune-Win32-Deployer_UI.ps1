@@ -12,6 +12,7 @@
 $global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
 $global:ProgramVar = $global:ProgramPath + '\ressources\variables.xml'
 $global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
+$global:intunewinonly = $false
 
 
 # System Rquiremend
@@ -259,52 +260,53 @@ function Get-FinishMessage () {
 }
 
 
-function SearchForm-winget{
-    $form_winget = New-Object System.Windows.Forms.Form
-    $form_winget.Text = 'Data Entry Form'
-    $form_winget.Size = New-Object System.Drawing.Size(300,200)
-    $form_winget.StartPosition = 'CenterScreen'
+function SearchForm-AddApp ($title, $description, $onlinesearch_text, $onlinesearch_url){
+    $form_AddApp = New-Object System.Windows.Forms.Form
+    $form_AddApp.Text = $title
+    $form_AddApp.Size = New-Object System.Drawing.Size(300,200)
+    $form_AddApp.StartPosition = 'CenterScreen'
 
-    $okButton_winget = New-Object System.Windows.Forms.Button
-    $okButton_winget.Location = New-Object System.Drawing.Point(75,120)
-    $okButton_winget.Size = New-Object System.Drawing.Size(75,23)
-    $okButton_winget.Text = 'OK'
-    $okButton_winget.DialogResult = [System.Windows.Forms.DialogResult]::OK
-    $form_winget.AcceptButton = $okButton_winget
-    $form_winget.Controls.Add($okButton_winget)
+    $okButton_AddApp = New-Object System.Windows.Forms.Button
+    $okButton_AddApp.Location = New-Object System.Drawing.Point(75,120)
+    $okButton_AddApp.Size = New-Object System.Drawing.Size(75,23)
+    $okButton_AddApp.Text = 'OK'
+    $okButton_AddApp.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form_AddApp.AcceptButton = $okButton_AddApp
+    $form_AddApp.Controls.Add($okButton_AddApp)
 
-    $label_winget = New-Object System.Windows.Forms.Label
-    $label_winget.Location = New-Object System.Drawing.Point(10,20)
-    $label_winget.Size = New-Object System.Drawing.Size(280,20)
-    $label_winget.Text = 'Please enter the exact winget id:'
-    $form_winget.Controls.Add($label_winget)
+    $label_AddApp = New-Object System.Windows.Forms.Label
+    $label_AddApp.Location = New-Object System.Drawing.Point(10,20)
+    $label_AddApp.Size = New-Object System.Drawing.Size(280,20)
+    $label_AddApp.Text = $description
+    $form_AddApp.Controls.Add($label_AddApp)
 
-    $textBox_winget = New-Object System.Windows.Forms.TextBox
-    $textBox_winget.Location = New-Object System.Drawing.Point(10,40)
-    $textBox_winget.Size = New-Object System.Drawing.Size(260,20)
-    $form_winget.Controls.Add($textBox_winget)
+    $textBox_AddApp = New-Object System.Windows.Forms.TextBox
+    $textBox_AddApp.Location = New-Object System.Drawing.Point(10,40)
+    $textBox_AddApp.Size = New-Object System.Drawing.Size(260,20)
+    $form_AddApp.Controls.Add($textBox_AddApp)
 
     # Button "Find winget apps"
-    $Button_wingetrun = New-Object System.Windows.Forms.Button
-    $Button_wingetrun.Location = New-Object System.Drawing.Size(10, 80)
-    $Button_wingetrun.Size = New-Object System.Drawing.Size(260, 20)
-    $Button_wingetrun.Text = "Find winget apps"
-    $Button_wingetrun.Name = "Find winget apps"
-    $Button_wingetrun.backcolor = $Color_Button
-    $Button_wingetrun.Add_MouseHover( {$Button_wingetrun.backcolor = $Color_ButtonHover})
-    $Button_wingetrun.Add_MouseLeave( {$Button_wingetrun.backcolor = $Color_Button})
-    $Button_wingetrun.Add_Click( {Start-Process "https://winget.run/"} )
-    $form_winget.Controls.Add($Button_wingetrun)
+    $Button_SearchID = New-Object System.Windows.Forms.Button
+    $Button_SearchID.Location = New-Object System.Drawing.Size(10, 80)
+    $Button_SearchID.Size = New-Object System.Drawing.Size(260, 20)
+    $Button_SearchID.Text = $onlinesearch_text
+    $Button_SearchID.Name = $onlinesearch_text
+    $Button_SearchID.backcolor = $Color_Button
+    $Button_SearchID.Add_MouseHover( {$Button_SearchID.backcolor = $Color_ButtonHover})
+    $Button_SearchID.Add_MouseLeave( {$Button_SearchID.backcolor = $Color_Button})
+    $Button_SearchID.Add_Click( {Start-Process $onlinesearch_url} )
+    $form_AddApp.Controls.Add($Button_SearchID)
     
 
-    $form_winget.Topmost = $true
+    $form_AddApp.Topmost = $true
 
-    $form_winget.Add_Shown({$textBox_winget.Select()})
-    $result = $form_winget.ShowDialog()
+    $form_AddApp.Add_Shown({$textBox_AddApp.Select()})
+    $result = $form_AddApp.ShowDialog()
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK)
     {
-        SearchAdd-WinGetApp $textBox_winget.Text
+        if($title -like "*winget*"){SearchAdd-wingetApp $textBox_AddApp.Text}
+        if($title -like "*Chocolatey*"){SearchAdd-ChocoApp $textBox_AddApp.Text}
 
     }
 }
@@ -356,6 +358,18 @@ $Button_Deploy.Add_MouseLeave( {$Button_Deploy.backcolor = $Color_Button})
 $Button_Deploy.Add_Click( {Import-FromCatalog})
 $objForm.Controls.Add($Button_Deploy)
 
+# Button "view personal Catalog"
+$Button_viewCatalog = New-Object System.Windows.Forms.Button
+$Button_viewCatalog.Location = New-Object System.Drawing.Size(240, 30)
+$Button_viewCatalog.Size = New-Object System.Drawing.Size(200, 30)
+$Button_viewCatalog.Text = "View App Catalog"
+$Button_viewCatalog.Name = "View App Catalog"
+$Button_viewCatalog.backcolor = $Color_Button
+$Button_viewCatalog.Add_MouseHover( {$Button_viewCatalog.backcolor = $Color_ButtonHover})
+$Button_viewCatalog.Add_MouseLeave( {$Button_viewCatalog.backcolor = $Color_Button})
+$Button_viewCatalog.Add_Click( {Read-AppRepo | out-gridview})
+$objForm.Controls.Add($Button_viewCatalog)
+
 # Button "Add Chocolatey App"
 $Button_AddChoco = New-Object System.Windows.Forms.Button
 $Button_AddChoco.Location = New-Object System.Drawing.Size(30, 70)
@@ -365,43 +379,20 @@ $Button_AddChoco.Name = "Add Chocolatey App"
 $Button_AddChoco.backcolor = $Color_Button
 $Button_AddChoco.Add_MouseHover( {$Button_AddChoco.backcolor = $Color_ButtonHover})
 $Button_AddChoco.Add_MouseLeave( {$Button_AddChoco.backcolor = $Color_Button})
-$Button_AddChoco.Add_Click( {SearchAdd-ChocoApp})
+$Button_AddChoco.Add_Click( {SearchForm-AddApp "Add Chocolatey App" "Type in search string" "Find packages / id online" "https://community.chocolatey.org/packages"})
 $objForm.Controls.Add($Button_AddChoco)
 
-# Button "Add Winget App"
-$Button_AddWinget = New-Object System.Windows.Forms.Button
-$Button_AddWinget.Location = New-Object System.Drawing.Size(30, 110)
-$Button_AddWinget.Size = New-Object System.Drawing.Size(200, 30)
-$Button_AddWinget.Text = "Add Winget App"
-$Button_AddWinget.Name = "Add Winget App"
-$Button_AddWinget.backcolor = $Color_Button
-$Button_AddWinget.Add_MouseHover( {$Button_AddWinget.backcolor = $Color_ButtonHover})
-$Button_AddWinget.Add_MouseLeave( {$Button_AddWinget.backcolor = $Color_Button})
-$Button_AddWinget.Add_Click( {SearchForm-winget} )
-$objForm.Controls.Add($Button_AddWinget)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Button "Add winget App"
+$Button_Addwinget = New-Object System.Windows.Forms.Button
+$Button_Addwinget.Location = New-Object System.Drawing.Size(30, 110)
+$Button_Addwinget.Size = New-Object System.Drawing.Size(200, 30)
+$Button_Addwinget.Text = "Add winget App"
+$Button_Addwinget.Name = "Add winget App"
+$Button_Addwinget.backcolor = $Color_Button
+$Button_Addwinget.Add_MouseHover( {$Button_Addwinget.backcolor = $Color_ButtonHover})
+$Button_Addwinget.Add_MouseLeave( {$Button_Addwinget.backcolor = $Color_Button})
+$Button_Addwinget.Add_Click( {SearchForm-AddApp "Add winget App" "Type in exact winget ID" "Find ID online" "https://winget.run"} )
+$objForm.Controls.Add($Button_Addwinget)
 
 
 
@@ -437,6 +428,18 @@ $Button_Change.Add_MouseHover( {$Button_Change.backcolor = $Color_ButtonHover})
 $Button_Change.Add_MouseLeave( {$Button_Change.backcolor = $Color_Button})
 $Button_Change.Add_Click( {Get-InitialVariables})
 $objForm.Controls.Add($Button_Change)
+
+# Button "only intunewin"
+$Button_Change = New-Object System.Windows.Forms.Button
+$Button_Change.Location = New-Object System.Drawing.Size(250, 260)
+$Button_Change.Size = New-Object System.Drawing.Size(200, 30)
+$Button_Change.Text = "only create intunewin"
+$Button_Change.Name = "only create intunewin"
+$Button_Change.backcolor = ( {if($global:intunewinonly -eq $true){"#EAB676"}else{"#A5A5A5"}})
+$Button_Change.Add_MouseHover( {$Button_Change.backcolor = $Color_ButtonHover})
+$Button_Change.Add_MouseLeave( {$Button_Change.backcolor = $Color_Button})
+$Button_Change.Add_Click( {if($global:intunewinonly -eq $true){$global:intunewinonly = $false}else{$global:intunewinonly = $true}})
+$objForm.Controls.Add($Button_Change) 
 
 # Button "Cancel"
 $CancelButton = New-Object System.Windows.Forms.Button

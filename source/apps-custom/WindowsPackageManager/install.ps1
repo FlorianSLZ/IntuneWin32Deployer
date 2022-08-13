@@ -25,11 +25,6 @@ try{
 
 # Install file cleanup
 Start-Sleep 3 # to unblock installation file
-Remove-Item -Path "$Folder_install\$MSIXBundle" -Force
-
-
+Remove-Item -Path "$Folder_install" -Force -Recurse
 
 Stop-Transcript
-
-
-

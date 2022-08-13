@@ -1,3 +1,13 @@
+#############################################################################################################
+#
+#   Tool:       Intune Win32 Deployer - Module/Function
+#   Author:     Florian Salzmann
+#   Website:    http://www.scloud.work
+#   Twitter:    https://twitter.com/FlorianSLZ
+#   LinkedIn:   https://www.linkedin.com/in/fsalzmann/
+#
+#############################################################################################################
+
 # Requires -Modules IntuneWin32App, AzureAD 
 # Install-Module NuGet, MSAL.PS, IntuneWin32App, AzureAD  -Scope CurrentUser -Force
 
@@ -16,7 +26,7 @@ $File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Module
     Uploads the packaged into the target Intune tenant.
 
     .NOTES
-    For details on IntuneWin32App go here: https://scloud.work/deploy-win32-fully-automated
+    For details on IntuneWin32App go here: https://scloud.work/Intune-Win32-Deployer
     
     .PARAMETER Path
     Path to use for downloading and processing packages
@@ -30,7 +40,7 @@ $File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Module
     Ex. scloudwork.onmicrosoft.com --> scloudwork
 
     .EXAMPLE
-    .\deploy-win32-fully-automated.ps1 -TenantName scloudwork.onmicrosoft.com -Publisher scloud
+    .\Intune-Win32-Deployer.ps1 -TenantName scloudwork.onmicrosoft.com -Publisher scloud
     
 #>
 
@@ -278,9 +288,9 @@ function Create-CustomWin32App($Prg){
 
 function Compile-Win32_intunewin($Prg, $Prg_Path, $Prg_img) {
     # download newest IntuneWinAppUtil
-    Invoke-WebRequest -Uri $IntuneWinAppUtil_online -OutFile "$Repo_Path\IntuneWinAppUtil.exe" -UseBasicParsing
+    Invoke-WebRequest -Uri $IntuneWinAppUtil_online -OutFile "$Repo_Path\ressources\IntuneWinAppUtil.exe" -UseBasicParsing
     # create intunewin file
-    Start-Process "$Repo_Path\IntuneWinAppUtil.exe" -Argument "-c $Prg_Path -s install.ps1 -o $Prg_Path -q" -Wait -NoNewWindow
+    Start-Process "$Repo_Path\ressources\IntuneWinAppUtil.exe" -Argument "-c $Prg_Path -s install.ps1 -o $Prg_Path -q" -Wait -NoNewWindow
 
     # Upload app
     Upload-Win32App $Prg $Prg_Path $Prg_img

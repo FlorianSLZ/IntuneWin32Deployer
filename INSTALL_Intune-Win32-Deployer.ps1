@@ -50,8 +50,10 @@ try{
     $install_choco = Read-Host "Do you want to install chocolatey? (Needed to create chocolatey packages) [Y/N]"
     $install_winget = Read-Host "Do you want to install the Windows Package Manager? (Needed to create einget packages) [Y/N]"
 
-    # Prerequirements (Chocolatey and winget)
-    . ".\source\ressources\prerequirements_AsAdmin.ps1" -choco $(if($install_choco -eq "y"){$true}else{$false}) -winget $(if($install_winget -eq "y"){$true}else{$false})
+    if(($install_choco -eq "y") -or ($install_winget -eq "y")){
+        # Prerequirements (Chocolatey and winget)
+        . ".\source\ressources\prerequirements_AsAdmin.ps1" -choco $(if($install_choco -eq "y"){$true}else{$false}) -winget $(if($install_winget -eq "y"){$true}else{$false})
+    }
 }catch{$_}
 
 

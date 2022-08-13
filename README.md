@@ -2,8 +2,7 @@
 
 
 # Intune Win32 Deployer
-[![release][release-badge]][release-url]
-[![downloads][downloads-badge]
+**Version 0.1**
 
 Fully automated win32 app deployment in Intune for chocolatey and winget applications
 

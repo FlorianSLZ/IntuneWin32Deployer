@@ -4,5 +4,4 @@ $ProgramVersion_current = (Get-AppPackage -Name $ProgramName).Version
 
 if($ProgramVersion_current -ge [System.Version]$ProgramVersion_target){
     Write-Host "Found it!"
-    .\apps-custom\WindowsPackageManager\install.ps1
 }

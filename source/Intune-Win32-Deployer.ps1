@@ -50,13 +50,13 @@ Param (
     [System.String] $Repo_Path = "$PSScriptRoot",
 
     [Parameter(Mandatory = $False)]
-    [System.String] $Repo_choco = "$PSScriptRoot\apps-choco",
+    [System.String] $Repo_choco = "$Repo_Path\apps-choco",
 
     [Parameter(Mandatory = $False)]
-    [System.String] $Repo_winget = "$PSScriptRoot\apps-winget",
+    [System.String] $Repo_winget = "$Repo_Path\apps-winget",
 
     [Parameter(Mandatory = $False)]
-    [System.String] $Repo_custom = "$PSScriptRoot\apps-custom",
+    [System.String] $Repo_custom = "$Repo_Path\apps-custom",
 
     [Parameter(Mandatory = $False)]
     [System.String] $Repo_CSV_Path = "$Repo_Path\Applications.csv",
@@ -65,7 +65,7 @@ Param (
     [System.String] $TenantName,
 
     [Parameter(Mandatory = $False)]
-    [bool] $intunewinonly = $false,
+    [bool] $intunewinOnly = $false,
 
     [Parameter(Mandatory = $true)]
     [System.String] $Publisher = "scloud",
@@ -93,13 +93,16 @@ function SearchAdd-ChocoApp ($searchText) {
     $Chocos2add = choco search $searchText | Out-GridView -OutputMode Multiple -Title "Select Applications to add"
     foreach($ChocoApp in $Chocos2add){
         # parameter mapping
-        $ChocoApp_new = New-Object PsObject -Property @{ id = "$($ChocoApp.split(' ')[0])" }
+        $ChocoApp_ID = $($ChocoApp.split(' ')[0])
+        $ChocoApp_new = New-Object PsObject -Property @{ id = "$ChocoApp_ID"; manager = "choco" }
         # add to CSV
         Add-AppRepo $ChocoApp_new
         # xy added, wanna deploy?
         $deployYN = New-Object -ComObject Wscript.Shell
-        if($($deployYN.Popup("Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
-
+        if($($deployYN.Popup("Chocolatey App >$ChocoApp_ID< added. Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
+            # Trigger creation process
+            $Prg = Read-AppRepo | Where-Object {$_.id -eq "$ChocoApp_ID"} | Select-Object -first 1
+            Create-ChocoWin32App $Prg
         }
 
 
@@ -112,13 +115,16 @@ function SearchAdd-WinGetApp ($searchText) {
     $winget2add = winget search --id $searchText --exact --accept-source-agreements
     if($winget2add -like "*$searchText*"){
         # parameter mapping
-        $WingetApp_new = New-Object PsObject -Property @{ id = "$searchText" }
+        $WingetApp_new = New-Object PsObject -Property @{ id = "$searchText"; manager = "choco" }
         # add to CSV
         Add-AppRepo $WingetApp_new
         # xy added, wanna deploy?
         $deployYN = New-Object -ComObject Wscript.Shell
-        if($($deployYN.Popup("Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
-
+        if($($deployYN.Popup("Winget App >$searchText< added. Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
+            # Trigger creation process
+            $Prg = Read-AppRepo | Where-Object {$_.id -eq "$searchText"} | Select-Object -first 1
+            Create-winget4Dependency
+            Create-WingetWin32App $Prg
         }
     }else{
         Write-Error "ID not found!"
@@ -128,11 +134,6 @@ function SearchAdd-WinGetApp ($searchText) {
 
 function Create-WingetWin32App($Prg){
     Write-Host "Creat win32 package for $($Prg.id) (Microsoft Package Manager)" -Foregroundcolor cyan
-
-    # resolve and nacigate to winget
-    $Path_WingetAll = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
-    if($Path_WingetAll){$Path_Winget = $Path_WingetAll[-1].Path}
-    cd $Path_Winget
 
     # Set and create program folder
     $Prg_Path = "$Repo_winget\$($Prg.id)"
@@ -163,7 +164,7 @@ function Create-WingetWin32App($Prg){
     }
 
     # check appliaction InstallExperience and set if not present
-    if(!$Prg.as){$Prg.as = "user"}
+    if(!$Prg.as){$Prg.as = "system"}
 
     # check if for img
     if(Get-ChildItem $Prg_Path -Filter "$($Prg.id).png"){
@@ -171,6 +172,9 @@ function Create-WingetWin32App($Prg){
     }else{
         $Prg_img = "$Repo_Path\ressources\template\winget\winget-managed.png"
     }
+
+    # Set Dependency if not defined
+    if(!$Prg.dependency){$Prg.dependency = "Windows Package Manager"}
 
     # Create intunewin
     Compile-Win32_intunewin $Prg $Prg_Path $Prg_img
@@ -181,19 +185,19 @@ function Create-ChocoWin32App($Prg){
 
     # Set and create program folder
     $Prg_Path = "$Repo_choco\$($Prg.id)"
-    New-Item $Prg_Path -type Directory -Force
+    New-Item $Prg_Path -type Directory -Force | Out-Null
 
     # create install file
-    $(Get-Content ".\ressources\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
+    $(Get-Content "$Repo_Path\ressources\template\choco\install.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\install.ps1" -Encoding utf8
 
     # create param file
     if($Prg.parameter){New-Item -Path "$Prg_Path\parameter.txt" -ItemType "file" -Force -Value $Prg.parameter}
 
     # create uninstall file
-    $(Get-Content ".\ressources\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"  -Encoding utf8
+    $(Get-Content "$Repo_Path\ressources\template\choco\uninstall.ps1").replace("CHOCOPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\uninstall.ps1"  -Encoding utf8
 
     # create validation file
-    $(Get-Content ".\ressources\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
+    $(Get-Content "$Repo_Path\ressources\template\choco\check.ps1").replace("CHOCOPROGRAMID","$($Prg.id)")  | Out-File "$Prg_Path\check.ps1" -Encoding utf8
 
     # check appliaction name and set if not present
     if(!$Prg.name){
@@ -249,6 +253,26 @@ function Create-Chocolatey4Dependency {
 
 }
 
+
+function Create-winget4Dependency {
+    try{
+        $Session = Connect-MSIntuneGraph -TenantID $TenantName
+
+        $App = @()
+        $App += New-Object psobject -Property @{Name = "Windows Package Manager";id = "winget"; Description = "Windows Package Manager is a comprehensive package manager solution that consists of a command line tool and set of services for installing applications on Windows 10 and Windows 11.";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -windowstyle hidden -executionpolicy bypass -command .\uninstall.ps1";as = "system";publisher = "";parameter = ""}
+
+        $AppOnline = Get-IntuneWin32App | where {$_.DisplayName -eq $App.Name} | select name, id
+        if(!$AppOnline){
+            Write-Host "Processing Windows Package Manager as prerequirement"
+            Create-CustomWin32App $App
+        }
+    }catch{
+        Write-Host "Error adding dependency for $($App.Name)" -ForegroundColor Red
+        $_
+    }
+
+}
+
 function CheckInstall-LocalChocolatey{
     # Check if chocolatey is installed
     $CheckChocolatey = C:\ProgramData\chocolatey\choco.exe list --localonly
@@ -259,17 +283,16 @@ function CheckInstall-LocalChocolatey{
 
 }
 
-
 function Create-CustomWin32App($Prg){
     Write-Host "Creat win32 package for $($Prg.name) (custom, no Package Manager)" -Foregroundcolor cyan
-
-    # Set program folder
-    $Prg_Path = "$Repo_custom\$($Prg.name)"
 
     # check appliaction name and set if not present
     if(!$Prg.name){
         $Prg.name = $Prg.id
     }
+
+    # Set program folder
+    $Prg_Path = "$Repo_custom\$($Prg.name)"
 
     # check for img
     if(Get-ChildItem $Prg_Path -Filter "$($Prg.id).png"){
@@ -292,8 +315,13 @@ function Compile-Win32_intunewin($Prg, $Prg_Path, $Prg_img) {
     # create intunewin file
     Start-Process "$Repo_Path\ressources\IntuneWinAppUtil.exe" -Argument "-c $Prg_Path -s install.ps1 -o $Prg_Path -q" -Wait -NoNewWindow
 
-    # Upload app
-    Upload-Win32App $Prg $Prg_Path $Prg_img
+    if($intunewinOnly -eq $false){
+        # Upload app
+        Upload-Win32App $Prg $Prg_Path $Prg_img
+    }else{
+        # Open file location / intunewin 
+        Invoke-Item $Prg_Path
+    }
 }
 
 function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
@@ -326,6 +354,7 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         # Upload 
         $upload = Add-IntuneWin32App -FilePath $IntuneWinFile -DisplayName $DisplayName -Description $($Prg.description) -Publisher $Publisher -InstallExperience $($Prg.as) -RestartBehavior "suppress" -DetectionRule $DetectionRule -RequirementRule $RequirementRule -InstallCommandLine $InstallCommandLine -UninstallCommandLine $UninstallCommandLine -Icon $Icon        
 
+        Write-Host "Upload completed: $($Prg.name)" -Foregroundcolor cyan
     }
     catch{
         Write-Host "Error application $($Prg.Name)" -ForegroundColor Red
@@ -360,6 +389,7 @@ function Import-FromCatalog{
     $Prg_selection = Read-AppRepo | Out-GridView -OutputMode Multiple -Title "Select Applications to create and upload"
     if($Prg_selection.manager -like "*choco*"){CheckInstall-LocalChocolatey}
     if($Prg_selection.manager -like "*choco*"){Create-Chocolatey4Dependency}
+    if($Prg_selection.manager -like "*winget*"){Create-winget4Dependency}
 
     foreach($Prg in $Prg_selection){
         if($Prg.manager -eq "choco"){Create-ChocoWin32App $Prg}

@@ -12,7 +12,7 @@
 $global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
 $global:ProgramVar = $global:ProgramPath + '\ressources\variables.xml'
 $global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
-$global:intunewinonly = $false
+$global:intunewinOnly = $false
 
 
 # System Rquiremend
@@ -326,7 +326,7 @@ else {
 }
 
 # Import functions
-. "$global:ProgramPath\Intune-Win32-Deployer.ps1" -TenantName $global:TenantName -Publisher $global:Publisher
+. "$global:ProgramPath\Intune-Win32-Deployer.ps1" -TenantName $global:TenantName -Publisher $global:Publisher -intunewinOnly $global:intunewinOnly
 
 # Colors
 $global:Color_Button = "#0288d1"

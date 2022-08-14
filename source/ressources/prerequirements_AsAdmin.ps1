@@ -35,7 +35,8 @@ if($choco -eq $true){
     if (!$Check_Chocolatey){
         try{
             Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 
-            Write-Host "Installation of Windows Package Manager finished" -ForegroundColor green
+            cls
+            Write-Host "Installation of Chocolatey finished" -ForegroundColor green
         }catch{
             Write-Error "Failed to install Chocolatey!"
         } 

@@ -13,6 +13,12 @@ $global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
 $global:ProgramVar = $global:ProgramPath + '\ressources\variables.xml'
 $global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
 $global:intunewinOnly = $false
+# Colors
+$global:Color_Button = "#0288d1"
+$global:Color_ButtonHover = "#4fc3f7"
+$global:Color_bg = "#121212"
+$global:Color_warning = "#f44336"
+$global:Color_error = "#ffa726"
 
 
 # System Rquiremend
@@ -23,10 +29,12 @@ Function Check-SystemRequirements() {
 } 
 
 Function Restart-MainUI {
-    $MainUI.Close()
-    $MainUI.Dispose()
-   
-    Start-MainUI
+    try{
+        $MainUI.Close()
+        $MainUI.Dispose()
+    
+        Start-MainUI
+    }catch{}
 }
 
 # Einlesen der Initial Variabeln (OU Pfade, Lizenzgruppen)
@@ -327,12 +335,5 @@ else {
 
 # Import functions
 . "$global:ProgramPath\Intune-Win32-Deployer.ps1" -TenantName $global:TenantName -Publisher $global:Publisher -intunewinOnly $global:intunewinOnly
-
-# Colors
-$global:Color_Button = "#0288d1"
-$global:Color_ButtonHover = "#4fc3f7"
-$global:Color_bg = "#121212"
-$global:Color_warning = "#f44336"
-$global:Color_error = "#ffa726"
 
 Start-MainUI

@@ -115,7 +115,7 @@ function SearchAdd-WinGetApp ($searchText) {
     $winget2add = winget search --id $searchText --exact --accept-source-agreements
     if($winget2add -like "*$searchText*"){
         # parameter mapping
-        $WingetApp_new = New-Object PsObject -Property @{ id = "$searchText"; manager = "choco" }
+        $WingetApp_new = New-Object PsObject -Property @{ id = "$searchText"; manager = "winget" }
         # add to CSV
         Add-AppRepo $WingetApp_new
         # xy added, wanna deploy?
@@ -313,7 +313,7 @@ function Compile-Win32_intunewin($Prg, $Prg_Path, $Prg_img) {
     # download newest IntuneWinAppUtil
     Invoke-WebRequest -Uri $IntuneWinAppUtil_online -OutFile "$Repo_Path\ressources\IntuneWinAppUtil.exe" -UseBasicParsing
     # create intunewin file
-    Start-Process "$Repo_Path\ressources\IntuneWinAppUtil.exe" -Argument "-c $Prg_Path -s install.ps1 -o $Prg_Path -q" -Wait -NoNewWindow
+    Start-Process "$Repo_Path\ressources\IntuneWinAppUtil.exe" -Argument "-c ""$Prg_Path"" -s install.ps1 -o ""$Prg_Path"" -q" -Wait -NoNewWindow
 
     if($intunewinOnly -eq $false){
         # Upload app
@@ -339,7 +339,12 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         $DisplayName = "$($Prg.Name)"
 
         # create detection rule
-        $DetectionRule = New-IntuneWin32AppDetectionRuleScript -ScriptFile "$Prg_Path\check.ps1" -EnforceSignatureCheck $false -RunAs32Bit $false
+        if($Prg.manager -eq "choco"){$DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -Path "C:\ProgramData\chocolatey\lib" -FileOrFolder $($Prg.id) -DetectionType "exists"}
+        #elseif($Prg.manager -eq "winget"){}
+        else{
+            $DetectionRule = New-IntuneWin32AppDetectionRuleScript -ScriptFile "$Prg_Path\check.ps1" -EnforceSignatureCheck $false -RunAs32Bit $false
+        }
+        
 
         # minimum requirements
         $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem 2004

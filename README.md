@@ -16,6 +16,19 @@ In addition the installer asks you if you want to install winget and chocolatey 
 ## Blogpost / Wiki
 An overview and some how-to's I put together on my blog: [The "Intune Win32 Deployer"](https://scloud.work/en/intune-win32-deployer/)
 
+## Functions
+- Create Intunewin for winget applications
+- Create Intunewin for Chocolatey applications
+- Deploy winget via Intune (as a system)
+- Deploy Chocolatey via Intune
+- Transform programs from the Windows Package Manager into an intunewin
+- Transform programs from Chocolatey into an intunewin
+- Create Win32 applications upload to Intune
+- Maintaining an inventory list within the application
+- Install winget (optional)
+- Install Chocolatey (optional)
+- Current Microsoft Win32 Content Prep Tool download
+
 If you have an
 
 ## Demo 

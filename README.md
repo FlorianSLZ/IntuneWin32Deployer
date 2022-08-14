@@ -4,7 +4,7 @@
 # Intune Win32 Deployer
 > Version 0.1
 
-Fully automated win32 app deployment for Intune with chocolatey and winget applications
+Create and deploy winget and chocolatey (win32) apps to Intune with one click!
 
 ## Installation
 To install just downlaod the whole repository and execute the "INSTALL_Intune-Win32-Deployer.ps1" in the roor folder. 

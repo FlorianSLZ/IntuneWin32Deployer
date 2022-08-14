@@ -19,3 +19,4 @@ An overview and some how-to's I put together on my blog: [The "Intune Win32 Depl
 If you have an
 
 ## Demo 
+[![Everything Is AWESOME](https://img.youtube.com/vi/f77XANBj95c/0.jpg)](https://youtu.be/f77XANBj95c "Everything Is AWESOME")

@@ -29,6 +29,15 @@ try{
     Copy-Item "$ProgramPath\Intune Win32 Deployer.lnk" "$env:appdata\Microsoft\Windows\Start Menu\Programs\Intune Win32 Deployer.lnk" -Force -Recurse
     Write-Host "Program files completed" -ForegroundColor green
 
+    # create Application.csv if not present
+    $Repo_CSV_Path = "$ProgramPath\Applications.csv"
+    if(!$(Test-Path $Repo_CSV_Path)){
+        $AppRepo = @()
+        $AppRepo += New-Object psobject -Property @{Name = "";id = "7zip.7zip"; Description = "";manager = "winget";install = "";uninstall = "";as = "";publisher = "";parameter = ""}
+        $AppRepo += New-Object psobject -Property @{Name = "";id = "7zip.7zip"; Description = "";manager = "winget";install = "";uninstall = "";as = "";publisher = "";parameter = ""}
+        $AppRepo | Export-CSV -Path $Repo_CSV_Path -NoTypeInformation -Encoding UTF8 -Delimiter ";"
+    }
+
 }catch{$_}
 
 

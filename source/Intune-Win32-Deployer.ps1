@@ -41,7 +41,7 @@ $File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Module
 
     .EXAMPLE
     .\Intune-Win32-Deployer.ps1 -TenantName scloudwork.onmicrosoft.com -Publisher scloud
-    
+
 #>
 
 [CmdletBinding()]

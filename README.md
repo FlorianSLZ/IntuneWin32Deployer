@@ -2,7 +2,7 @@
 
 
 # Intune Win32 Deployer
-> Version 0.1
+> Version 2022.22.0
 
 Create and deploy winget and chocolatey (win32) apps to Intune with one click!
 

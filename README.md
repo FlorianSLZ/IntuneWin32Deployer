@@ -7,12 +7,15 @@
 Create and deploy winget and chocolatey (win32) apps to Intune with one click!
 
 ## Installation
-To install just downlaod the whole repository and execute the "INSTALL_Intune-Win32-Deployer.ps1" in the roor folder. 
-This will copy the program files to your local Appdata and creates a shortcut in the startmenu. (no Desktop icon, cause I don't inke those). 
+To install just download the whole repository and execute the "INSTALL_Intune-Win32-Deployer.ps1" in the root folder. 
+This will copy the program files to your local Appdata and creates a shortcut in the start menu. (no Desktop icon, cause I don't like those). 
 
-In addintion the the installer ask you if you want to install and winget (as an admin). 
+In addition the installer asks you if you want to install winget and chocolatey (as an admin). 
 
 
 ## Blogpost / Wiki
-An overview and some how-to's i put togoter on my blog: 
-If you have any questions or ideas feel free to place them in the comment. 
+An overview and some how-to's I put together on my blog: [The "Intune Win32 Deployer"](https://scloud.work/en/intune-win32-deployer/)
+
+If you have an
+
+## Demo 

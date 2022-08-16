@@ -59,11 +59,19 @@ try{
 
 try{
     # temporarry fix for IntuneWin32App module
+	$IntuneWin32App_usr = "$([Environment]::GetFolderPath(""MyDocuments""))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3"
+	$IntuneWin32App_sys = "C:\Program Files\WindowsPowerShell\Modules\IntuneWin32App\1.3.3"
+	if(Test-Path $IntuneWin32App_usr){$IntuneWin32App = $IntuneWin32App_usr}
+	elseif(Test-Path $IntuneWin32App_sys){$IntuneWin32App = $IntuneWin32App_sys}
+	else{Write-Error "Module IntuneWin32App not found!"}
     $oldLine = '$ScriptContent = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([System.IO.File]::ReadAllBytes("$($ScriptFile)") -join [Environment]::NewLine))'
     $newLine = '$ScriptContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes("$($ScriptFile)"))'
-    $File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
+    $File = "$IntuneWin32App\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
     (Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File
-}catch{Write-Host "Unable to implement fix for detectionrule. " -ForegroundColor red}
+}catch{
+    Write-Host "Unable to implement fix for detectionrule." -ForegroundColor red
+    Write-Host "If Module is already installed in System context. Try to execute the installer as Admin" -ForegroundColor yellow
+}
 
 
 #############################################################################################################
@@ -83,4 +91,4 @@ try{
 
 # Enter to exit
 Write-Host "Installation completed!" -ForegroundColor green
-$enter2end = Read-HOst "Press [Enter] to close"
+Read-Host "Press [Enter] to close"

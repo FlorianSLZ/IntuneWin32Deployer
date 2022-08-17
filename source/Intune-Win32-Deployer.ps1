@@ -237,15 +237,17 @@ function Create-ChocoWin32App($Prg){
 
 function Create-Chocolatey4Dependency {
     try{
-        $Session = Connect-MSIntuneGraph -TenantID $TenantName
+        if($intunewinOnly -eq $false){
+            $Session = Connect-MSIntuneGraph -TenantID $TenantName
 
-        $App = @()
-        $App += New-Object psobject -Property @{Name = "Chocolatey";id = "Chocolatey"; Description = "Paketmanager";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "no uninstall!";as = "system";publisher = "";parameter = ""}
+            $App = @()
+            $App += New-Object psobject -Property @{Name = "Chocolatey";id = "Chocolatey"; Description = "Paketmanager";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "no uninstall!";as = "system";publisher = "";parameter = ""}
 
-        $AppChocolatey = Get-IntuneWin32App | where {$_.DisplayName -eq $App.Name} | select displayName, id
-        if(!$AppChocolatey){
-            Write-Host "Processing Chocolatey as prerequirement"
-            Create-CustomWin32App $App
+            $AppChocolatey = Get-IntuneWin32App | where {$_.DisplayName -eq $App.Name} | select displayName, id
+            if(!$AppChocolatey){
+                Write-Host "Processing Chocolatey as prerequirement"
+                Create-CustomWin32App $App
+            }
         }
     }catch{
         Write-Host "Error adding dependency for $($App.Name)" -ForegroundColor Red
@@ -257,15 +259,17 @@ function Create-Chocolatey4Dependency {
 
 function Create-winget4Dependency {
     try{
-        $Session = Connect-MSIntuneGraph -TenantID $TenantName
+        if($intunewinOnly -eq $false){
+            $Session = Connect-MSIntuneGraph -TenantID $TenantName
 
-        $App = @()
-        $App += New-Object psobject -Property @{Name = "Windows Package Manager";id = "winget"; Description = "Windows Package Manager is a comprehensive package manager solution that consists of a command line tool and set of services for installing applications on Windows 10 and Windows 11.";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -windowstyle hidden -executionpolicy bypass -command .\uninstall.ps1";as = "system";publisher = "";parameter = ""}
+            $App = @()
+            $App += New-Object psobject -Property @{Name = "Windows Package Manager";id = "winget"; Description = "Windows Package Manager is a comprehensive package manager solution that consists of a command line tool and set of services for installing applications on Windows 10 and Windows 11.";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -windowstyle hidden -executionpolicy bypass -command .\uninstall.ps1";as = "system";publisher = "";parameter = ""}
 
-        $AppOnline = Get-IntuneWin32App | where {$_.DisplayName -eq $App.Name} | select name, id
-        if(!$AppOnline){
-            Write-Host "Processing Windows Package Manager as prerequirement"
-            Create-CustomWin32App $App
+            $AppOnline = Get-IntuneWin32App | where {$_.DisplayName -eq $App.Name} | select name, id
+            if(!$AppOnline){
+                Write-Host "Processing Windows Package Manager as prerequirement"
+                Create-CustomWin32App $App
+            }
         }
     }catch{
         Write-Host "Error adding dependency for $($App.Name)" -ForegroundColor Red

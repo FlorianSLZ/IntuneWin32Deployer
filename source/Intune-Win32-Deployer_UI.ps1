@@ -13,6 +13,7 @@ $global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
 $global:ProgramVar = $global:ProgramPath + '\ressources\variables.xml'
 $global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
 $global:intunewinOnly = $false
+$global:Status = "ready"
 # Colors
 $global:Color_Button = "#0288d1"
 $global:Color_ButtonHover = "#4fc3f7"
@@ -34,7 +35,20 @@ Function Restart-MainUI {
         $MainUI.Dispose()
     
         Start-MainUI
+
     }catch{}
+}
+
+function Status-Wrapper ($function2call){
+    $global:Status = "working..."
+    $Label_Status.Text = "Status: $($global:Status)"
+    $Label_Status.ForeColor = "#ff9900"
+    $MainUI.Controls.Add($Label_Status)
+    Invoke-Expression $function2call
+    $global:Status = "ready"
+    $Label_Status.Text = "Status: $($global:Status)"
+    $Label_Status.ForeColor = "#009933"
+    $MainUI.Controls.Add($Label_Status)
 }
 
 # Einlesen der Initial Variabeln (OU Pfade, Lizenzgruppen)
@@ -111,7 +125,7 @@ function Get-ProgramVar ($title, $lb1, $lb2, $lb3, $lb4, $lb5) {
     $button.Left = 360;
     $button.Top = 170;
     $button.Width = 100;
-    $button.Text = "Speichern";
+    $button.Text = "Save";
     
     ############# This is when you have to close the form after getting values
     $eventHandler = [System.EventHandler] {
@@ -218,7 +232,7 @@ function Start-MainUI{
     $Button_Deploy.backcolor = $Color_Button
     $Button_Deploy.Add_MouseHover( {$Button_Deploy.backcolor = $Color_ButtonHover})
     $Button_Deploy.Add_MouseLeave( {$Button_Deploy.backcolor = $Color_Button})
-    $Button_Deploy.Add_Click( {Import-FromCatalog})
+    $Button_Deploy.Add_Click( {Status-Wrapper "Import-FromCatalog"})
     $MainUI.Controls.Add($Button_Deploy)
 
     # Button "view personal Catalog"
@@ -230,7 +244,7 @@ function Start-MainUI{
     $Button_viewCatalog.backcolor = $Color_Button
     $Button_viewCatalog.Add_MouseHover( {$Button_viewCatalog.backcolor = $Color_ButtonHover})
     $Button_viewCatalog.Add_MouseLeave( {$Button_viewCatalog.backcolor = $Color_Button})
-    $Button_viewCatalog.Add_Click( {Read-AppRepo | out-gridview})
+    $Button_viewCatalog.Add_Click( {Status-Wrapper "Read-AppRepo | out-gridview"})
     $MainUI.Controls.Add($Button_viewCatalog)
 
     # Button "Add Chocolatey App"
@@ -242,7 +256,7 @@ function Start-MainUI{
     $Button_AddChoco.backcolor = $Color_Button
     $Button_AddChoco.Add_MouseHover( {$Button_AddChoco.backcolor = $Color_ButtonHover})
     $Button_AddChoco.Add_MouseLeave( {$Button_AddChoco.backcolor = $Color_Button})
-    $Button_AddChoco.Add_Click( {SearchForm-AddApp "Add Chocolatey App" "Type in search string" "Find packages / id online" "https://community.chocolatey.org/packages"})
+    $Button_AddChoco.Add_Click( {Status-Wrapper 'SearchForm-AddApp "Add Chocolatey App" "Type in search string" "Find packages / id online" "https://community.chocolatey.org/packages"'})
     $MainUI.Controls.Add($Button_AddChoco)
 
     # Button "Add winget App"
@@ -254,7 +268,7 @@ function Start-MainUI{
     $Button_Addwinget.backcolor = $Color_Button
     $Button_Addwinget.Add_MouseHover( {$Button_Addwinget.backcolor = $Color_ButtonHover})
     $Button_Addwinget.Add_MouseLeave( {$Button_Addwinget.backcolor = $Color_Button})
-    $Button_Addwinget.Add_Click( {SearchForm-AddApp "Add winget App" "Type in exact winget ID" "Find ID online" "https://winget.run"} )
+    $Button_Addwinget.Add_Click( {Status-Wrapper 'SearchForm-AddApp "Add winget App" "Type in exact winget ID" "Find ID online" "https://winget.run"'} )
     $MainUI.Controls.Add($Button_Addwinget)
 
     # Info Tenant
@@ -272,6 +286,14 @@ function Start-MainUI{
     $Label_Publisher.Text = "Publisher: $($global:Publisher)"
     $Label_Publisher.ForeColor = "#FFFFFF"
     $MainUI.Controls.Add($Label_Publisher)
+
+    # Info Status
+    $Label_Status = New-Object System.Windows.Forms.Label
+    $Label_Status.Location = New-Object System.Drawing.Size(500, 30)
+    $Label_Status.Size = New-Object System.Drawing.Size(200, 30)
+    $Label_Status.Text = "Status: $($global:Status)"
+    $Label_Status.ForeColor = "#009933"
+    $MainUI.Controls.Add($Label_Status)
 
 
     # Button "Change"

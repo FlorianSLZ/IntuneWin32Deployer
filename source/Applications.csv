@@ -1,3 +1,0 @@
-id;Name;Description;manager;install;uninstall;as;publisher;parameter;dependency
-Microsoft.VisualStudioCode;;;winget;;;;;;
-7zip.7zip;;;winget;;;;;;

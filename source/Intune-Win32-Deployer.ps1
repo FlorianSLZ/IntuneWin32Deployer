@@ -102,6 +102,7 @@ function SearchAdd-ChocoApp ($searchText) {
         if($($deployYN.Popup("Chocolatey App >$ChocoApp_ID< added. Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
             # Trigger creation process
             $Prg = Read-AppRepo | Where-Object {$_.id -eq "$ChocoApp_ID"} | Select-Object -first 1
+            Create-Chocolatey4Dependency
             Create-ChocoWin32App $Prg
         }
 
@@ -241,7 +242,7 @@ function Create-Chocolatey4Dependency {
         $App = @()
         $App += New-Object psobject -Property @{Name = "Chocolatey";id = "Chocolatey"; Description = "Paketmanager";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "no uninstall!";as = "system";publisher = "";parameter = ""}
 
-        $AppChocolatey = Get-IntuneWin32App | where {$_.DisplayName -eq $App.Name} | select name, id
+        $AppChocolatey = Get-IntuneWin32App | where {$_.DisplayName -eq $App.Name} | select displayName, id
         if(!$AppChocolatey){
             Write-Host "Processing Chocolatey as prerequirement"
             Create-CustomWin32App $App

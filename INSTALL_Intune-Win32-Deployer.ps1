@@ -67,7 +67,7 @@ try{
     $oldLine = '$ScriptContent = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([System.IO.File]::ReadAllBytes("$($ScriptFile)") -join [Environment]::NewLine))'
     $newLine = '$ScriptContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes("$($ScriptFile)"))'
     $File = "$IntuneWin32App\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
-    (Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File
+    if($(Get-Content $File) -contains $oldLine){(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File}
 }catch{
     Write-Host "Unable to implement fix for detectionrule." -ForegroundColor red
     Write-Host "If Module is already installed in System context. Try to execute the installer as Admin" -ForegroundColor yellow

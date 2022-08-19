@@ -49,6 +49,7 @@ function Status-Wrapper ($function2call){
     $Label_Status.Text = "Status: $($global:Status)"
     $Label_Status.ForeColor = "#009933"
     $MainUI.Controls.Add($Label_Status)
+    Write-Host "Done. Ready for next task. "
 }
 
 # Einlesen der Initial Variabeln (OU Pfade, Lizenzgruppen)
@@ -220,7 +221,7 @@ function Start-MainUI{
     $MainUI.Backcolor = $Color_bg
     $MainUI.StartPosition = "CenterScreen"
     $MainUI.Size = New-Object System.Drawing.Size(800, 400)
-    $MainUI.Text = "Intune win32 Deployer"
+    $MainUI.Text = "Intune Win32 Deployer"
     $MainUI.Icon = $global:ProgramIcon
 
     # Button "Deploy from personal Catalog"

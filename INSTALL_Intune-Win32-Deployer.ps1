@@ -33,8 +33,8 @@ try{
     $Repo_CSV_Path = "$ProgramPath\Applications.csv"
     if(!$(Test-Path $Repo_CSV_Path)){
         $AppRepo = @()
-        $AppRepo += New-Object psobject -Property @{Name = "";id = "7zip.7zip"; Description = "";manager = "winget";install = "";uninstall = "";as = "";publisher = "";parameter = ""}
-        $AppRepo += New-Object psobject -Property @{Name = "";id = "7zip.7zip"; Description = "";manager = "winget";install = "";uninstall = "";as = "";publisher = "";parameter = ""}
+        $AppRepo += New-Object psobject -Property @{Name = "";id = "7zip.7zip"; Description = "";manager = "winget";install = "";uninstall = "";as = "";publisher = "";parameter = "";dependency = ""}
+        $AppRepo += New-Object psobject -Property @{Name = "";id = "Microsoft.VisualStudioCode"; Description = "";manager = "winget";install = "";uninstall = "";as = "";publisher = "";parameter = ""dependency = ""}
         $AppRepo | Export-CSV -Path $Repo_CSV_Path -NoTypeInformation -Encoding UTF8 -Delimiter ";"
     }
 

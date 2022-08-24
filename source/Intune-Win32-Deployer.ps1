@@ -76,6 +76,17 @@ Param (
     [switch]$Force
     
 )
+$global:version = "2022.22.0"
+
+function Check-Version {
+    $version_github = (Invoke-webrequest -URI "https://raw.githubusercontent.com/FlorianSLZ/Intune-Win32-Deployer/main/source/ressources/version").Content
+    if([System.Version]$global:version -ge [System.Version]$version_github){
+        $updateYN = New-Object -ComObject Wscript.Shell
+        if($($updateYN.Popup("New version aviable: $version_github. Do you want to update?",0,"Alert",64+4)) -eq 6){
+            
+        }
+    }
+}
 
 function Read-AppRepo{
     $AppRepo = Import-CSV -Path $Repo_CSV_Path -Encoding UTF8 -Delimiter ";"
@@ -407,3 +418,7 @@ function Import-FromCatalog{
         else{Create-CustomWin32App $Prg}
     }
 }
+
+# Import requred Modules
+Import-Module "MSAL.PS"
+Import-Module "IntuneWin32App"

@@ -110,7 +110,7 @@ function SearchAdd-ChocoApp ($searchText) {
         Add-AppRepo $ChocoApp_new
         # xy added, wanna deploy?
         $deployYN = New-Object -ComObject Wscript.Shell
-        if($($deployYN.Popup("Chocolatey App >$ChocoApp_ID< added. Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
+        if($($deployYN.Popup("Chocolatey App >$ChocoApp_ID< added. Do you want to create the intunewin?",0,"Create App",64+4)) -eq 6){
             # Trigger creation process
             $Prg = Read-AppRepo | Where-Object {$_.id -eq "$ChocoApp_ID"} | Select-Object -first 1
             Create-Chocolatey4Dependency
@@ -132,7 +132,7 @@ function SearchAdd-WinGetApp ($searchText) {
         Add-AppRepo $WingetApp_new
         # xy added, wanna deploy?
         $deployYN = New-Object -ComObject Wscript.Shell
-        if($($deployYN.Popup("Winget App >$searchText< added. Do you want to create the intunewin?",0,"Alert",64+4)) -eq 6){
+        if($($deployYN.Popup("Winget App >$searchText< added. Do you want to create the intunewin?",0,"Create App",64+4)) -eq 6){
             # Trigger creation process
             $Prg = Read-AppRepo | Where-Object {$_.id -eq "$searchText"} | Select-Object -first 1
             Create-winget4Dependency

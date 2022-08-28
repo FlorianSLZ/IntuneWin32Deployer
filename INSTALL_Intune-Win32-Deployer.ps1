@@ -65,11 +65,11 @@ try{
     $newLine = '$ScriptContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes("$($ScriptFile)"))'
 	if(Test-Path $IntuneWin32App_usr){
         $File = "$IntuneWin32App_usr\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
-        if($(Get-Content $File) -contains $oldLine){(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File}
+        if($(Get-Content $File) -match 'System.Text.Encoding'){(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File}
     }
 	if(Test-Path $IntuneWin32App_sys){
         $File = "$IntuneWin32App_sys\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
-        if($(Get-Content $File) -contains $oldLine){(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File}
+        if($(Get-Content $File) -match 'System.Text.Encoding'){(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File}
     }
 	if($(Test-Path $IntuneWin32App_sys) -or (Test-Path $IntuneWin32App_usr)){}else{Write-Error "Module IntuneWin32App not found!"}
     

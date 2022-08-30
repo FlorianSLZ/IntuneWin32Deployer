@@ -27,7 +27,7 @@ try{
     #   Create Startmenu shortcut
     Write-Host "Creating / updating startmeu shortcut..."
     Copy-Item "$ProgramPath\Intune Win32 Deployer.lnk" "$env:appdata\Microsoft\Windows\Start Menu\Programs\Intune Win32 Deployer.lnk" -Force -Recurse
-    Write-Host "Program files completed" -ForegroundColor green
+    Write-Host "Startmeu item completed" -ForegroundColor green
 
     # create Application.csv if not present
     $Repo_CSV_Path = "$ProgramPath\Applications.csv"

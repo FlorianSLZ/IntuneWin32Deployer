@@ -8,8 +8,8 @@
 #
 #############################################################################################################
 
-# Requires -Modules IntuneWin32App, AzureAD 
-# Install-Module NuGet, MSAL.PS, IntuneWin32App, AzureAD  -Scope CurrentUser -Force
+# Required Modules 
+# Install-Module MSAL.PS, IntuneWin32App  -Scope CurrentUser -Force
 
 <# temporarry fix for IntuneWin32App module
 $oldLine = '$ScriptContent = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([System.IO.File]::ReadAllBytes("$($ScriptFile)") -join [Environment]::NewLine))'

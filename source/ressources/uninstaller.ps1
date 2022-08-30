@@ -1,6 +1,6 @@
 #############################################################################################################
 #
-#   Tool:       Intune Win32 Deployer - Installer
+#   Tool:       Intune Win32 Deployer - Uninstaller
 #   Author:     Florian Salzmann
 #   Website:    http://www.scloud.work
 #   Twitter:    https://twitter.com/FlorianSLZ

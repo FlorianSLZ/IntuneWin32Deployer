@@ -76,14 +76,27 @@ Param (
     [switch]$Force
     
 )
-$global:version = "2022.22.0"
+$global:version_iwd = "2022.22.0"
 
 function Check-Version {
     $version_github = (Invoke-webrequest -URI "https://raw.githubusercontent.com/FlorianSLZ/Intune-Win32-Deployer/main/source/ressources/version").Content
-    if([System.Version]$global:version -ge [System.Version]$version_github){
+    if([System.Version]$global:version_github -ge [System.Version]$version_iwd){
         $updateYN = New-Object -ComObject Wscript.Shell
         if($($updateYN.Popup("New version aviable: $version_github. Do you want to update?",0,"Alert",64+4)) -eq 6){
-            
+            # Download latest version
+            $GitHubRepo_url = "https://github.com/FlorianSLZ/Intune-Win32-Deployer/archive/refs/heads/main.zip"
+            $GitHubRepo_name = "Intune-Win32-Deployer"
+            $wc = New-Object net.webclient
+            $wc.Downloadfile($GitHubRepo_url, "$Repo_Path\update.zip")
+            Expand-Archive .\update.zip .\updatedata
+
+            # call updater
+            .\updatedata\Intune-Win32-Deployer-main\source\ressources\updater.ps1
+
+            # remove update data
+            Remove-Item .\updatedata -Force -Recurse
+            Remove-Item .\update.zip -Force -Recurse
+
         }
     }
 }

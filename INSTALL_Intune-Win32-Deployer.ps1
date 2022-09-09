@@ -45,7 +45,6 @@ try{
 #   Modules
 #############################################################################################################
 Write-Host "Checking / installing Modules..."
-
 try{  
     if (!$(Get-Module -ListAvailable -Name "MSAL.PS" -ErrorAction SilentlyContinue)) {
         Write-Host "Installing Module: MSAL.PS"
@@ -56,7 +55,6 @@ try{
         Install-Module "IntuneWin32App" -RequiredVersion 1.3.3 -Scope CurrentUser -Force
     }
 }catch{$_}
-
 
 try{
     # temporarry fix for IntuneWin32App module

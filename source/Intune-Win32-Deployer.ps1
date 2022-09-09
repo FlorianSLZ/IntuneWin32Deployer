@@ -419,6 +419,23 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
 
 }
 
+function Add-PRAupdater4winget ($Prg) {
+    $(Get-Content "$Repo_Path\ressources\template\proactive remediations\detection-winget-upgrade.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\detection-winget-upgrade.ps1" -Encoding utf8
+    $(Get-Content "$Repo_Path\ressources\template\proactive remediations\remediation-winget-upgrade.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\remediation-winget-upgrade.ps1" -Encoding utf8
+
+    .\ressources\template\procative-remediation-creation.ps1 `
+        -Publisher $Publisher `
+        -PAR_name "winget upgrade - $($Prg.Name)" `
+        -PAR_RunAs "system" `
+        -PAR_Scheduler "Daily" `
+        -PAR_Frequency 1 `
+        -PAR_StartTime "01:00" `
+        -PAR_RunAs32 $true `
+        -PAR_AADGroup "APP-WIN-winget_$($Prg.id)" `
+        -PAR_script_detection "$Prg_Path\detection-winget-upgrade.ps1" `
+        -PAR_script_remediation "$Prg_Path\remediation-winget-upgrade.ps1"
+}
+
 function Import-FromCatalog{
     $Prg_selection = Read-AppRepo | Out-GridView -OutputMode Multiple -Title "Select Applications to create and upload"
     if($Prg_selection.manager -like "*choco*"){CheckInstall-LocalChocolatey}

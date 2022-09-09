@@ -46,18 +46,18 @@ try{
 #############################################################################################################
 Write-Host "Checking / installing Modules..."
 
-$Modules_needed = "MSAL.PS", "IntuneWin32App"#, "AzureAD"
-
 try{  
-    foreach($Module in $Modules_needed){
-        if (!$(Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue)) {
-        Write-Host "Installing Module: $Module"
-        Install-Module $Module -Scope CurrentUser -Force
-        }
+    if (!$(Get-Module -ListAvailable -Name "MSAL.PS" -ErrorAction SilentlyContinue)) {
+        Write-Host "Installing Module: MSAL.PS"
+        Install-Module "MSAL.PS" -Scope CurrentUser -Force
+    }
+    if (!$(Get-Module -ListAvailable -Name "IntuneWin32App" -ErrorAction SilentlyContinue)) {
+        Write-Host "Installing Module: IntuneWin32App"
+        Install-Module "IntuneWin32App" -RequiredVersion 1.3.3 -Scope CurrentUser -Force
     }
 }catch{$_}
 
-<#
+
 try{
     # temporarry fix for IntuneWin32App module
 	$IntuneWin32App_usr = "$([Environment]::GetFolderPath(""MyDocuments""))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3"
@@ -79,7 +79,7 @@ try{
     Write-Host "Unable to implement fix for detectionrule." -ForegroundColor red
     Write-Host "If Module is already installed in System context. Try to execute the installer as Admin" -ForegroundColor yellow
 }
-#>
+
 
 #############################################################################################################
 #   Chocolatey & Windows Package Manager

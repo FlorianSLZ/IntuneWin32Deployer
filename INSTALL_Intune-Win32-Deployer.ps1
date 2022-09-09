@@ -57,6 +57,7 @@ try{
     }
 }catch{$_}
 
+<#
 try{
     # temporarry fix for IntuneWin32App module
 	$IntuneWin32App_usr = "$([Environment]::GetFolderPath(""MyDocuments""))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3"
@@ -78,7 +79,7 @@ try{
     Write-Host "Unable to implement fix for detectionrule." -ForegroundColor red
     Write-Host "If Module is already installed in System context. Try to execute the installer as Admin" -ForegroundColor yellow
 }
-
+#>
 
 #############################################################################################################
 #   Chocolatey & Windows Package Manager

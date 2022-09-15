@@ -14,6 +14,6 @@ $Path_WingetAll = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAp
 if($Path_WingetAll){$Path_Winget = $Path_WingetAll[-1].Path}
 cd $Path_Winget
 
-.\winget.exe install --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements $param
+.\winget.exe install --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements --scope Machine $param
 
 Stop-Transcript

@@ -1,7 +1,11 @@
-$ProgramName = "Microsoft.DesktopAppInstaller"
-$ProgramVersion_minimum = '2022.506.16.0'
-$ProgramVersion_current = (Get-AppPackage -Name $ProgramName).Version
+#Get WinGet Path (system)
+$ResolveWingetPath = Resolve-Path "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
+if ($ResolveWingetPath) {
+    #If multiple versions (when pre-release versions are installed), pick last one
+    $WingetPath = $ResolveWingetPath[-1].Path
+    $Script:Winget = "$WingetPath\winget.exe"
 
-if($ProgramVersion_current -ge [System.Version]$ProgramVersion_target){
-    Write-Host "Found it!"
+    if($([System.Diagnostics.FileVersionInfo]::GetVersionInfo($Winget).FileVersion) -ge [System.Version]$ProgramVersion_minimum){
+        Write-Host "Found it!"
+    }
 }

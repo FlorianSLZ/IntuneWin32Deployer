@@ -28,7 +28,7 @@ Param (
     [String] $winget_id,
 
     [Parameter(Mandatory = $false)]
-    [String] $PAR_description = "Automatically createt via PowerShell",
+    [String] $PAR_description = "Created via Intune Win32 Deployer",
 
     [Parameter(Mandatory = $false)]
     [String] $PAR_RunAs = "system",
@@ -49,10 +49,10 @@ Param (
     [String] $PAR_AADGroup,
 
     [Parameter(Mandatory = $false)]
-    [String] $PAR_script_detection = "$PSScriptRoot\$PAR_name\detection-winget-upgrade.ps1",
+    [String] $PAR_detection_path = "$PSScriptRoot\$PAR_name\detection-winget-upgrade.ps1",
 
     [Parameter(Mandatory = $false)]
-    [String] $PAR_script_remediation = "$PSScriptRoot\$PAR_name\remediation-winget-upgrade.ps1"
+    [String] $PAR_remediation_path = "$PSScriptRoot\$PAR_name\remediation-winget-upgrade.ps1"
 
     
 )
@@ -61,22 +61,56 @@ Param (
 #   Check / Install required Modules
 ##############################################################################################################
 
+$Modules_needed = "Microsoft.Graph", "AzureAD"
 try{  
-    if (!$(Get-Module -ListAvailable -Name "MSAL.PS" -ErrorAction SilentlyContinue)) {
-        Write-Host "Installing Module: MSAL.PS"
-        Install-Module "MSAL.PS" -Scope CurrentUser -Force
-    }
-    if (!$(Get-Module -ListAvailable -Name "IntuneWin32App" -ErrorAction SilentlyContinue)) {
-        Write-Host "Installing Module: IntuneWin32App"
-        Install-Module "IntuneWin32App" -RequiredVersion 1.3.3 -Scope CurrentUser -Force
+    foreach($Module in $Modules_needed){
+        if (!$(Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue)){
+        Write-Host "Installing Module: $Module"
+        Install-Module $Module -Scope CurrentUser -Force
+        }
     }
 }catch{$_}
 
 ##############################################################################################################
 #   Create Detection and Remediation Script
 ##############################################################################################################
-$(Get-Content "$PSScriptRoot\detection-winget-upgrade.ps1").replace("WINGETPROGRAMID","$winget_id") | Out-File (New-Item "$PSScriptRoot\$PAR_name\detection-winget-upgrade.ps1" -Type File -Force) -Encoding utf8
-$(Get-Content "$PSScriptRoot\remediation-winget-upgrade.ps1").replace("WINGETPROGRAMID","$winget_id") | Out-File (New-Item "$PSScriptRoot\$PAR_name\remediation-winget-upgrade.ps1" -Type File -Force) -Encoding utf8
+$script_detection = @'
+$app_2upgrade = "WINGETPROGRAMID"
+
+$Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\winget.exe")
+
+if ($(&$winget upgrade) -like "* $app_2upgrade *") {
+	Write-Host "Upgrade available for: $app_2upgrade"
+	exit 1 # upgrade available, remediation needed
+}
+else {
+		Write-Host "No Upgrade available"
+		exit 0 # no upgared, no action needed
+}
+'@
+
+$script_remediation = @'
+$app_2upgrade = "WINGETPROGRAMID"
+
+try{
+    $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\winget.exe")
+
+    # upgrade command
+    &$winget upgrade --exact $app_2upgrade --silent --force --accept-package-agreements --accept-source-agreements
+    exit 0
+
+}catch{
+    Write-Error "Error while installing upgarde for: $app_2upgrade"
+    exit 1
+}
+
+'@
+
+# Create and save
+$PAR_detection = $script_detection.replace("WINGETPROGRAMID","$winget_id") 
+$PAR_detection | Out-File (New-Item $PAR_detection_path -Type File -Force) -Encoding utf8
+$PAR_remediation = $script_remediation.replace("WINGETPROGRAMID","$winget_id") 
+$PAR_remediation | Out-File (New-Item $PAR_remediation_path -Type File -Force) -Encoding utf8
 
 
 
@@ -90,14 +124,13 @@ $params = @{
          PAR_RunAs32Bit = $PAR_RunAs32
          RunAsAccount = $PAR_RunAs
          EnforceSignatureCheck = $false
-         DetectionScriptContent = [System.Text.Encoding]::ASCII.GetBytes($PAR_script_detection)
-         RemediationScriptContent = [System.Text.Encoding]::ASCII.GetBytes($PAR_script_remediation)
+         DetectionScriptContent = [System.Text.Encoding]::ASCII.GetBytes($PAR_detection)
+         RemediationScriptContent = [System.Text.Encoding]::ASCII.GetBytes($PAR_remediation)
          RoleScopeTagIds = @(
                  "0"
          )
 }
-
-Write-Host "Connecting to Graph" -ForegroundColor Cyan
+Write-Host " "
 Connect-MSGraph
 
 Write-Host "Creating Proactive Remediation: $PAR_name" -ForegroundColor Cyan
@@ -113,16 +146,17 @@ catch {
     Write-Error $_.Exception
 }
 
-Write-Host "Connecting to AzureAD to query Group to assign" -ForegroundColor Cyan
-Connect-AzureAD
+if ($null -eq $(try{[Microsoft.Open.Azure.AD.CommonLibrary.AzureSession]::AccessTokens}catch{})){ 
+    Write-Host "Connecting to AzureAD to query Group to assign" -ForegroundColor Cyan
+    Connect-AzureAD
+}
 
 #   Get Group ID
 $AADGroupID = (Get-AzureADGroup -All $true | where-object DisplayName -eq $PAR_AADGroup).ObjectID
     if($AADGroupID){
-    Write-Host "Group ID discovered: $AADGroupID" -ForegroundColor Green
     ##Set the JSON
     if ($PAR_Scheduler -eq "Hourly") {
-        Write-Host "Assigning Hourly Schedule running every $PAR_Frequency hours"
+        Write-Host "  Assigning Hourly Schedule running every $PAR_Frequency hours"
     $params = @{
         DeviceHealthScriptAssignments = @(
             @{
@@ -174,24 +208,6 @@ $AADGroupID = (Get-AzureADGroup -All $true | where-object DisplayName -eq $PAR_A
         Write-Error $_.Exception 
         
     }
-    Write-Host "Remediation Assigned"
-
-    Write-Host "Complete"
 }else{
     Write-Host "Group $PAR_AADGroup not found, PAR createt but not assigned" -ForegroundColor Yellow
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

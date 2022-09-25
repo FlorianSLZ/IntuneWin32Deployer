@@ -1,24 +1,17 @@
 #############################################################################################################
 #
-#   Tool:       Intune Win32 Deployer - Module/Function
-#   Author:     Florian Salzmann
-#   Website:    http://www.scloud.work
-#   Twitter:    https://twitter.com/FlorianSLZ
-#   LinkedIn:   https://www.linkedin.com/in/fsalzmann/
+#   Tool:           Intune Win32 Deployer
+#   Author:         Florian Salzmann
+#   Website:        http://www.scloud.work
+#   Twitter:        https://twitter.com/FlorianSLZ
+#   LinkedIn:       https://www.linkedin.com/in/fsalzmann/
+#
+#   Description:    https://scloud.work/intune-win32-deployer/
 #
 #############################################################################################################
 
 # Required Modules 
-# Install-Module MSAL.PS, IntuneWin32App  -Scope CurrentUser -Force
-
-<# temporarry fix for IntuneWin32App module
-$oldLine = '$ScriptContent = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([System.IO.File]::ReadAllBytes("$($ScriptFile)") -join [Environment]::NewLine))'
-$newLine = '$ScriptContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes("$($ScriptFile)"))'
-$File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
-(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File
-
-#>
-
+# Install-Module MSAL.PS, IntuneWin32App, AzureAD  -Scope CurrentUser -Force
 
 <#
     .SYNOPSIS
@@ -27,27 +20,13 @@ $File = "$([Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Module
 
     .NOTES
     For details on IntuneWin32App go here: https://scloud.work/Intune-Win32-Deployer
-    
-    .PARAMETER Path
-    Path to use for downloading and processing packages
-
-    .PARAMETER PackageOutputPath
-    Path to export the created packages
-
-    .PARAMETER TenantName
-    Microsoft Endpoint Manager (Intune) Azure Active Directory Tenant. 
-    Prefix from yout onmicrosfot.com Domain.
-    Ex. scloudwork.onmicrosoft.com --> scloudwork
-
-    .EXAMPLE
-    .\Intune-Win32-Deployer.ps1 -TenantName scloudwork.onmicrosoft.com -Publisher scloud
 
 #>
 
 [CmdletBinding()]
 Param (
     [Parameter(Mandatory = $False)]
-    [System.String] $Repo_Path = "$PSScriptRoot",
+    [System.String] $Repo_Path = "$env:LOCALAPPDATA\Intune-Win32-Deployer",
 
     [Parameter(Mandatory = $False)]
     [System.String] $Repo_choco = "$Repo_Path\apps-choco",
@@ -61,22 +40,33 @@ Param (
     [Parameter(Mandatory = $False)]
     [System.String] $Repo_CSV_Path = "$Repo_Path\Applications.csv",
 
-    [Parameter(Mandatory = $true)]
-    [System.String] $TenantName,
-
-    [Parameter(Mandatory = $False)]
-    [bool] $intunewinOnly = $false,
-
-    [Parameter(Mandatory = $true)]
-    [System.String] $Publisher = "scloud",
-
     [Parameter(Mandatory = $False)]
     [System.String] $IntuneWinAppUtil_online = "https://raw.githubusercontent.com/microsoft/Microsoft-Win32-Content-Prep-Tool/master/IntuneWinAppUtil.exe",  
 
     [switch]$Force
     
 )
-$global:version_iwd = "2022.22.0"
+####################################################################################
+#   Variables
+####################################################################################
+$global:version_iwd = "2022.38.0"
+
+# Basic Variables 
+$global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
+$global:SettingsPath = $global:ProgramPath + '\ressources\settings.xml'
+$global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
+$global:Status = "ready"
+# Colors
+$global:Color_Button = "#0288d1"
+$global:Color_ButtonHover = "#4fc3f7"
+$global:Color_bg = "#121212"
+$global:Color_warning = "#f44336"
+$global:Color_error = "#ffa726"
+
+
+####################################################################################
+#   Functions
+####################################################################################
 
 function Check-Version {
     $version_github = (Invoke-webrequest -URI "https://raw.githubusercontent.com/FlorianSLZ/Intune-Win32-Deployer/main/source/ressources/version").Content
@@ -88,14 +78,14 @@ function Check-Version {
             $GitHubRepo_name = "Intune-Win32-Deployer"
             $wc = New-Object net.webclient
             $wc.Downloadfile($GitHubRepo_url, "$Repo_Path\update.zip")
-            Expand-Archive .\update.zip .\updatedata
+            Expand-Archive $Repo_Path\update.zip $Repo_Path\updatedata
 
             # call updater
-            .\updatedata\Intune-Win32-Deployer-main\source\ressources\updater.ps1
+            &"$Repo_Path\updatedata\Intune-Win32-Deployer-main\source\ressources\updater.ps1"
 
             # remove update data
-            Remove-Item .\updatedata -Force -Recurse
-            Remove-Item .\update.zip -Force -Recurse
+            Remove-Item "$Repo_Path\updatedata" -Force -Recurse
+            Remove-Item "$Repo_Path\update.zip" -Force -Recurse
 
         }
     }
@@ -261,8 +251,8 @@ function Create-ChocoWin32App($Prg){
 
 function Create-Chocolatey4Dependency {
     try{
-        if($intunewinOnly -eq $false){
-            $Session = Connect-MSIntuneGraph -TenantID $TenantName
+        if($($global:SettingsVAR.intunewinOnly) -eq "false"){
+            $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
 
             $App = @()
             $App += New-Object psobject -Property @{Name = "Chocolatey";id = "Chocolatey"; Description = "Paketmanager";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "no uninstall!";as = "system";publisher = "";parameter = ""}
@@ -283,8 +273,8 @@ function Create-Chocolatey4Dependency {
 
 function Create-winget4Dependency {
     try{
-        if($intunewinOnly -eq $false){
-            $Session = Connect-MSIntuneGraph -TenantID $TenantName
+        if($($global:SettingsVAR.intunewinOnly) -eq "false"){
+            $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
 
             $App = @()
             $App += New-Object psobject -Property @{Name = "Windows Package Manager";id = "winget"; Description = "Windows Package Manager is a comprehensive package manager solution that consists of a command line tool and set of services for installing applications on Windows 10 and Windows 11.";manager = "";install = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass -command .\install.ps1";uninstall = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -windowstyle hidden -executionpolicy bypass -command .\uninstall.ps1";as = "system";publisher = "";parameter = ""}
@@ -309,7 +299,6 @@ function CheckInstall-LocalChocolatey{
         Write-Host "Instaling Chocolatey (on local machine)"
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
     }
-
 }
 
 function Create-CustomWin32App($Prg){
@@ -342,9 +331,9 @@ function Compile-Win32_intunewin($Prg, $Prg_Path, $Prg_img) {
     # download newest IntuneWinAppUtil
     Invoke-WebRequest -Uri $IntuneWinAppUtil_online -OutFile "$Repo_Path\ressources\IntuneWinAppUtil.exe" -UseBasicParsing
     # create intunewin file
-    Start-Process "$Repo_Path\ressources\IntuneWinAppUtil.exe" -Argument "-c ""$Prg_Path"" -s install.ps1 -o ""$Prg_Path"" -q" -Wait -NoNewWindow
+    Start-Process "$Repo_Path\ressources\IntuneWinAppUtil.exe" -Argument "-c ""$Prg_Path"" -s install.ps1 -o ""$Prg_Path"" -q" -Wait -WindowStyle hidden
 
-    if($intunewinOnly -eq $false){
+    if($($global:SettingsVAR.intunewinOnly) -eq "false"){
         # Upload app
         Upload-Win32App $Prg $Prg_Path $Prg_img
     }else{
@@ -359,7 +348,7 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
     try{
         
         # Graph Connect 
-        $Session = Connect-MSIntuneGraph -TenantID $TenantName
+        $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
 
         # get .intunewin for Upload 
         $IntuneWinFile = "$Prg_Path\install.intunewin"
@@ -376,7 +365,7 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         
 
         # minimum requirements
-        $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem 2004
+        $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedWindowsRelease 2004
 
         # picture for win32 app (shown in company portal)
         $Icon = New-IntuneWin32AppIcon -FilePath $Prg_img
@@ -386,22 +375,22 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         $UninstallCommandLine = "%SystemRoot%\sysnative\WindowsPowerShell\v1.0\powershell.exe -windowstyle hidden -executionpolicy bypass -command .\uninstall.ps1"
         
         # Upload 
-        $upload = Add-IntuneWin32App -FilePath $IntuneWinFile -DisplayName $DisplayName -Description $($Prg.description) -Publisher $Publisher -InstallExperience $($Prg.as) -RestartBehavior "suppress" -DetectionRule $DetectionRule -RequirementRule $RequirementRule -InstallCommandLine $InstallCommandLine -UninstallCommandLine $UninstallCommandLine -Icon $Icon        
+        $upload = Add-IntuneWin32App -FilePath $IntuneWinFile -DisplayName $DisplayName -Description $($Prg.description) -Publisher $global:SettingsVAR.Publisher -InstallExperience $($Prg.as) -RestartBehavior "suppress" -DetectionRule $DetectionRule -RequirementRule $RequirementRule -InstallCommandLine $InstallCommandLine -UninstallCommandLine $UninstallCommandLine -Icon $Icon        
 
-        Write-Host "Upload completed: $($Prg.name)" -Foregroundcolor cyan
+        Write-Host "Upload completed: $($Prg.name)" -Foregroundcolor green
     }
     catch{
         Write-Host "Error application $($Prg.Name)" -ForegroundColor Red
         $_
     }
     # Sleep to prevent block from azure on a mass upload
-    Start-sleep -s 15
+    Start-sleep -s 10
 
     try{
         # Check dependency
         if($Prg.dependency){
             Write-Host "  Processing dependency $($Prg.dependency) to $($Prg.Name)" -ForegroundColor Cyan
-            $Session = Connect-MSIntuneGraph -TenantID $TenantName
+            $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
             $UploadedApp = Get-IntuneWin32App | where {$_.DisplayName -eq $Prg.Name} | select name, id
             $DependendProgram = Get-IntuneWin32App | where {$_.DisplayName -eq $Prg.dependency} | select name, id
             if(!$DependendProgram){
@@ -417,27 +406,17 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         $_
     }
 
+    if($($global:SettingsVAR.AADgrp) -eq "True"){Create-AADGroup $Prg}
+    if($Prg.manager -like "*winget*"){
+        if($($global:SettingsVAR.PRupdater) -eq "True"){Create-PR $Prg}
+    }
+
 }
 
-function Add-PRAupdater4winget ($Prg) {
-    $(Get-Content "$Repo_Path\ressources\template\proactive remediations\detection-winget-upgrade.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\detection-winget-upgrade.ps1" -Encoding utf8
-    $(Get-Content "$Repo_Path\ressources\template\proactive remediations\remediation-winget-upgrade.ps1").replace("WINGETPROGRAMID","$($Prg.id)") | Out-File "$Prg_Path\remediation-winget-upgrade.ps1" -Encoding utf8
-
-    .\ressources\template\procative-remediation-creation.ps1 `
-        -Publisher $Publisher `
-        -PAR_name "winget upgrade - $($Prg.Name)" `
-        -PAR_RunAs "system" `
-        -PAR_Scheduler "Daily" `
-        -PAR_Frequency 1 `
-        -PAR_StartTime "01:00" `
-        -PAR_RunAs32 $true `
-        -PAR_AADGroup "APP-WIN-winget_$($Prg.id)" `
-        -PAR_script_detection "$Prg_Path\detection-winget-upgrade.ps1" `
-        -PAR_script_remediation "$Prg_Path\remediation-winget-upgrade.ps1"
-}
 
 function Import-FromCatalog{
     $Prg_selection = Read-AppRepo | Out-GridView -OutputMode Multiple -Title "Select Applications to create and upload"
+    $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
     if($Prg_selection.manager -like "*choco*"){CheckInstall-LocalChocolatey}
     if($Prg_selection.manager -like "*choco*"){Create-Chocolatey4Dependency}
     if($Prg_selection.manager -like "*winget*"){Create-winget4Dependency}
@@ -449,6 +428,377 @@ function Import-FromCatalog{
     }
 }
 
-# Import requred Modules
+function Create-PR ($Prg){
+    &"$Repo_Path\ressources\proactive-remediation-creation.ps1" `
+    -Publisher $global:SettingsVAR.Publisher `
+    -PAR_name "winget upgrade - $($Prg.Name)" `
+    -PAR_RunAs "system" `
+    -PAR_Scheduler "Daily" `
+    -PAR_Frequency 1 `
+    -PAR_StartTime "01:00" `
+    -PAR_RunAs32 $true `
+    -PAR_AADGroup "$($global:SettingsVAR.AADgrpPrefix )$($Prg.id)" `
+    -winget_id $($Prg.id)
+}
+
+function Create-AADGroup ($Prg){
+    # Connect AAD if not connected
+    if ($null -eq $(try{[Microsoft.Open.Azure.AD.CommonLibrary.AzureSession]::AccessTokens}catch{})){ Connect-AzureAD }
+
+    # Create Group
+    $grpname = "$($global:SettingsVAR.AADgrpPrefix )$($Prg.id)"
+    if(!$(Get-AzureADGroup -SearchString $grpname)){
+        Write-Host "  Create AAD group for assigment:  $grpname" -Foregroundcolor cyan
+        $GrpObj = New-AzureADGroup -DisplayName "$grpname" -Description "App assigment: $($Prg.id) $($Prg.manager)" -MailEnabled $false -SecurityEnabled $true -MailNickName "NotSet"
+    }else{$GrpObj = Get-AzureADGroup -SearchString $grpname}
+
+    # Add App Assigment
+    Write-Host "  Assign Group > $grpname <  to  > $($Prg.Name) <" -Foregroundcolor cyan
+    $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
+    $Win32App = Get-IntuneWin32App -DisplayName "$($Prg.Name)"
+    Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $GrpObj.ObjectId -Intent "required" -Notification "showAll"
+}
+
+####################################################################################
+#   Functions - UI
+####################################################################################
+Function Restart-MainUI {
+    try{
+        $MainUI.Close()
+        $MainUI.Dispose()
+    
+        Start-MainUI
+
+    }catch{
+        try{Start-MainUI}catch{$_}
+    }
+}
+
+function Status-Wrapper ($function2call){
+    $global:Status = "working..."
+    $Label_Status.Text = "Status: $($global:Status)"
+    $Label_Status.ForeColor = "#ff9900"
+    $MainUI.Controls.Add($Label_Status)
+    Invoke-Expression $function2call
+    $global:Status = "ready"
+    $Label_Status.Text = "Status: $($global:Status)"
+    $Label_Status.ForeColor = "#009933"
+    $MainUI.Controls.Add($Label_Status)
+    Write-Host "Done. Ready for next task. " -BackgroundColor Blue
+    Write-Host " "
+}
+
+# Einlesen der Initial Variabeln
+Function Get-SettingVariables() {
+    $global:SettingsVAR = Import-Clixml -Path $global:SettingsPath
+    Open-Settings
+} 
+
+Function Set-SettingVariables($SettingsCol) {
+    Export-Clixml -Path $global:SettingsPath -InputObject $SettingsCol -Force
+    $global:SettingsVAR = Import-Clixml -Path $global:SettingsPath
+    Restart-MainUI
+}
+
+Function Load-SettingVariables {
+    $global:SettingsVAR = Import-Clixml -Path $global:SettingsPath
+    if(!$($SettingsVAR.Tenant) -or ($SettingsVAR.Tenant -like "xxx.*") ){ Get-SettingVariables }
+
+    Restart-MainUI
+}
+
+function Open-Settings{
+    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
+    
+    # Set the size of your form
+    $form_Settings = New-Object System.Windows.Forms.Form
+    $form_Settings.width = 500
+    $form_Settings.height = 300
+    $form_Settings.Text = "Settings"
+    $form_Settings.Backcolor = "#FFFFFF"
+    $form_Settings.Icon = $global:ProgramIcon
+    $form_Settings.StartPosition = "CenterScreen"
+
+    # label tenant name
+    $Label_tenant = New-Object System.Windows.Forms.Label
+    $Label_tenant.Location = new-object System.Drawing.Size(30,10)
+    $Label_tenant.Size = New-Object System.Drawing.Size(150,20)
+    $Label_tenant.Text = "Tenant Name"
+    $form_Settings.Controls.Add($Label_tenant)
+
+    # box tenant name
+    $Box_tenant = New-Object System.Windows.Forms.TextBox
+    $Box_tenant.Location = new-object System.Drawing.Size(200,10)
+    $Box_tenant.Size = New-Object System.Drawing.Size(150,20)
+    $Box_tenant.Text = $global:SettingsVAR.Tenant
+    $form_Settings.Controls.Add($Box_tenant)
+
+    # label publisher 
+    $Label_publisher = New-Object System.Windows.Forms.Label
+    $Label_publisher.Location = new-object System.Drawing.Size(30,40)
+    $Label_publisher.Size = New-Object System.Drawing.Size(150,20)
+    $Label_publisher.Text = "Publisher"
+    $form_Settings.Controls.Add($Label_publisher)
+
+    # box publisher 
+    $Box_publisher = New-Object System.Windows.Forms.TextBox
+    $Box_publisher.Location = new-object System.Drawing.Size(200,40)
+    $Box_publisher.Size = New-Object System.Drawing.Size(150,20)
+    $Box_publisher.Text = $global:SettingsVAR.Publisher
+    $form_Settings.Controls.Add($Box_publisher)
+
+    # label group prefix
+    $Label_grpPrefix = New-Object System.Windows.Forms.Label
+    $Label_grpPrefix.Location = new-object System.Drawing.Size(30,70)
+    $Label_grpPrefix.Size = New-Object System.Drawing.Size(150,20)
+    $Label_grpPrefix.Text = "AAD Group Prefix"
+    $form_Settings.Controls.Add($Label_grpPrefix)
+
+    # box group prefix
+    $Box_grpPrefix = New-Object System.Windows.Forms.TextBox
+    $Box_grpPrefix.Location = new-object System.Drawing.Size(200,70)
+    $Box_grpPrefix.Size = New-Object System.Drawing.Size(150,20)
+    $Box_grpPrefix.Text = $global:SettingsVAR.AADgrpPrefix
+    $form_Settings.Controls.Add($Box_grpPrefix)
+    
+    # AAD group checkbox 
+    $checkbox_grp = new-object System.Windows.Forms.checkbox
+    $checkbox_grp.Location = new-object System.Drawing.Size(30,130)
+    $checkbox_grp.Size = new-object System.Drawing.Size(250,20)
+    $checkbox_grp.Text = "Creat/Assign group per App"
+    $checkbox_grp.Checked = [System.Convert]::ToBoolean($global:SettingsVAR.AADgrp)
+    $form_Settings.Controls.Add($checkbox_grp)
+
+    # proactive remediations checkbox 
+    $checkbox_PR = new-object System.Windows.Forms.checkbox
+    $checkbox_PR.Location = new-object System.Drawing.Size(30,170)
+    $checkbox_PR.Size = new-object System.Drawing.Size(250,20)
+    $checkbox_PR.Text = "Create PR per App"
+    $checkbox_PR.Checked = [System.Convert]::ToBoolean($global:SettingsVAR.PRupdater)
+    $form_Settings.Controls.Add($checkbox_PR)  
+ 
+    # OK button
+    $OKButton = new-object System.Windows.Forms.Button
+    $OKButton.Location = new-object System.Drawing.Size(30,210)
+    $OKButton.Size = new-object System.Drawing.Size(100,40)
+    $OKButton.Text = "OK"
+    $OKButton.Add_Click({
+        $global:SettingsVAR.AADgrp = $checkbox_grp.Checked
+        $global:SettingsVAR.PRupdater = $checkbox_PR.Checked
+        $global:SettingsVAR.AADgrpPrefix = $Box_grpPrefix.Text
+        $global:SettingsVAR.Publisher = $Box_publisher.Text
+        $global:SettingsVAR.Tenant = $Box_tenant.Text
+        $form_Settings.Close()
+        Set-SettingVariables $global:SettingsVAR
+        
+    })
+    $form_Settings.Controls.Add($OKButton)
+    
+    # Activate the form
+    $form_Settings.Add_Shown({$form_Settings.Activate()})
+    [void] $form_Settings.ShowDialog() 
+}
+
+function SearchForm-AddApp ($title, $description, $onlinesearch_text, $onlinesearch_url){
+    $form_AddApp = New-Object System.Windows.Forms.Form
+    $form_AddApp.Text = $title
+    $form_AddApp.Size = New-Object System.Drawing.Size(300,200)
+    $form_AddApp.Backcolor = "#FFFFFF"
+    $form_AddApp.Icon = $global:ProgramIcon
+    $form_AddApp.StartPosition = 'CenterScreen'
+
+    $okButton_AddApp = New-Object System.Windows.Forms.Button
+    $okButton_AddApp.Location = New-Object System.Drawing.Point(75,120)
+    $okButton_AddApp.Size = New-Object System.Drawing.Size(75,23)
+    $okButton_AddApp.Text = 'OK'
+    $okButton_AddApp.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form_AddApp.AcceptButton = $okButton_AddApp
+    $form_AddApp.Controls.Add($okButton_AddApp)
+
+    $label_AddApp = New-Object System.Windows.Forms.Label
+    $label_AddApp.Location = New-Object System.Drawing.Point(10,20)
+    $label_AddApp.Size = New-Object System.Drawing.Size(280,20)
+    $label_AddApp.Text = $description
+    $form_AddApp.Controls.Add($label_AddApp)
+
+    $textBox_AddApp = New-Object System.Windows.Forms.TextBox
+    $textBox_AddApp.Location = New-Object System.Drawing.Point(10,40)
+    $textBox_AddApp.Size = New-Object System.Drawing.Size(260,20)
+    $form_AddApp.Controls.Add($textBox_AddApp)
+
+    # Button "Find winget apps"
+    $Button_SearchID = New-Object System.Windows.Forms.Button
+    $Button_SearchID.Location = New-Object System.Drawing.Size(10, 80)
+    $Button_SearchID.Size = New-Object System.Drawing.Size(260, 20)
+    $Button_SearchID.Text = $onlinesearch_text
+    $Button_SearchID.Name = $onlinesearch_text
+    $Button_SearchID.backcolor = $Color_Button
+    $Button_SearchID.Add_MouseHover( {$Button_SearchID.backcolor = $Color_ButtonHover})
+    $Button_SearchID.Add_MouseLeave( {$Button_SearchID.backcolor = $Color_Button})
+    $Button_SearchID.Add_Click( {Start-Process $onlinesearch_url} )
+    $form_AddApp.Controls.Add($Button_SearchID)
+    
+
+    $form_AddApp.Topmost = $true
+
+    $form_AddApp.Add_Shown({$textBox_AddApp.Select()})
+    $result = $form_AddApp.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+    {
+        if($title -like "*winget*"){SearchAdd-wingetApp $textBox_AddApp.Text}
+        if($title -like "*Chocolatey*"){SearchAdd-ChocoApp $textBox_AddApp.Text}
+
+    }
+}
+
+function Start-MainUI{
+
+    # Color - variable
+    if($global:SettingsVAR.intunewinOnly -eq "true"){$Button_intunewin_color  = "#EAB676"}else{$Button_intunewin_color  = "#A5A5A5"}
+    
+    # Main window
+    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
+    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+    $MainUI = New-Object System.Windows.Forms.Form
+    $MainUI.Backcolor = $Color_bg
+    $MainUI.StartPosition = "CenterScreen"
+    $MainUI.Size = New-Object System.Drawing.Size(800, 400)
+    $MainUI.Text = "Intune Win32 Deployer"
+    $MainUI.Icon = $global:ProgramIcon
+
+    # Button "Deploy from personal Catalog"
+    $Button_Deploy = New-Object System.Windows.Forms.Button
+    $Button_Deploy.Location = New-Object System.Drawing.Size(30, 30)
+    $Button_Deploy.Size = New-Object System.Drawing.Size(200, 30)
+    $Button_Deploy.Text = "Deploy from personal Catalog"
+    $Button_Deploy.Name = "Deploy from personal Catalog"
+    $Button_Deploy.backcolor = $Color_Button
+    $Button_Deploy.Add_MouseHover( {$Button_Deploy.backcolor = $Color_ButtonHover})
+    $Button_Deploy.Add_MouseLeave( {$Button_Deploy.backcolor = $Color_Button})
+    $Button_Deploy.Add_Click( {Status-Wrapper "Import-FromCatalog"})
+    $MainUI.Controls.Add($Button_Deploy)
+
+    # Button "view personal Catalog"
+    $Button_viewCatalog = New-Object System.Windows.Forms.Button
+    $Button_viewCatalog.Location = New-Object System.Drawing.Size(240, 30)
+    $Button_viewCatalog.Size = New-Object System.Drawing.Size(200, 30)
+    $Button_viewCatalog.Text = "View App Catalog"
+    $Button_viewCatalog.Name = "View App Catalog"
+    $Button_viewCatalog.backcolor = $Color_Button
+    $Button_viewCatalog.Add_MouseHover( {$Button_viewCatalog.backcolor = $Color_ButtonHover})
+    $Button_viewCatalog.Add_MouseLeave( {$Button_viewCatalog.backcolor = $Color_Button})
+    $Button_viewCatalog.Add_Click( {Status-Wrapper "Read-AppRepo | out-gridview"})
+    $MainUI.Controls.Add($Button_viewCatalog)
+
+    # Button "Add Chocolatey App"
+    $Button_AddChoco = New-Object System.Windows.Forms.Button
+    $Button_AddChoco.Location = New-Object System.Drawing.Size(30, 70)
+    $Button_AddChoco.Size = New-Object System.Drawing.Size(200, 30)
+    $Button_AddChoco.Text = "Add Chocolatey App"
+    $Button_AddChoco.Name = "Add Chocolatey App"
+    $Button_AddChoco.backcolor = $Color_Button
+    $Button_AddChoco.Add_MouseHover( {$Button_AddChoco.backcolor = $Color_ButtonHover})
+    $Button_AddChoco.Add_MouseLeave( {$Button_AddChoco.backcolor = $Color_Button})
+    $Button_AddChoco.Add_Click( {Status-Wrapper 'SearchForm-AddApp "Add Chocolatey App" "Type in search string" "Find packages / id online" "https://community.chocolatey.org/packages"'})
+    $MainUI.Controls.Add($Button_AddChoco)
+
+    # Button "Add winget App"
+    $Button_Addwinget = New-Object System.Windows.Forms.Button
+    $Button_Addwinget.Location = New-Object System.Drawing.Size(30, 110)
+    $Button_Addwinget.Size = New-Object System.Drawing.Size(200, 30)
+    $Button_Addwinget.Text = "Add winget App"
+    $Button_Addwinget.Name = "Add winget App"
+    $Button_Addwinget.backcolor = $Color_Button
+    $Button_Addwinget.Add_MouseHover( {$Button_Addwinget.backcolor = $Color_ButtonHover})
+    $Button_Addwinget.Add_MouseLeave( {$Button_Addwinget.backcolor = $Color_Button})
+    $Button_Addwinget.Add_Click( {Status-Wrapper 'SearchForm-AddApp "Add winget App" "Type in exact winget ID" "Find ID online" "https://winget.run"'} )
+    $MainUI.Controls.Add($Button_Addwinget)
+
+    # Info Tenant
+    $Label_Tenant = New-Object System.Windows.Forms.Label
+    $Label_Tenant.Location = New-Object System.Drawing.Size(30, 200)
+    $Label_Tenant.Size = New-Object System.Drawing.Size(200, 30)
+    $Label_Tenant.Text = "Tenant: $($global:SettingsVAR.Tenant)"
+    $Label_Tenant.ForeColor = "#FFFFFF"
+    $MainUI.Controls.Add($Label_Tenant)
+
+    # Info Publisher
+    $Label_Publisher = New-Object System.Windows.Forms.Label
+    $Label_Publisher.Location = New-Object System.Drawing.Size(30, 230)
+    $Label_Publisher.Size = New-Object System.Drawing.Size(200, 30)
+    $Label_Publisher.Text = "Publisher: $($global:SettingsVAR.Publisher)"
+    $Label_Publisher.ForeColor = "#FFFFFF"
+    $MainUI.Controls.Add($Label_Publisher)
+
+    # Info Status
+    $Label_Status = New-Object System.Windows.Forms.Label
+    $Label_Status.Location = New-Object System.Drawing.Size(500, 30)
+    $Label_Status.Size = New-Object System.Drawing.Size(200, 30)
+    $Label_Status.Text = "Status: $($global:Status)"
+    $Label_Status.ForeColor = "#009933"
+    $MainUI.Controls.Add($Label_Status)
+
+    # Info Version
+    $Label_Version = New-Object System.Windows.Forms.Label
+    $Label_Version.Location = New-Object System.Drawing.Size(500, 300)
+    $Label_Version.Size = New-Object System.Drawing.Size(200, 30)
+    $Label_Version.Text = "Version $($global:version_iwd)"
+    $Label_Version.ForeColor = "#555555"
+    $MainUI.Controls.Add($Label_Version)
+
+    # Button "Settings"
+    $Button_Settings = New-Object System.Windows.Forms.Button
+    $Button_Settings.Location = New-Object System.Drawing.Size(30, 260)
+    $Button_Settings.Size = New-Object System.Drawing.Size(200, 30)
+    $Button_Settings.Text = "Settings"
+    $Button_Settings.Name = "Settings"
+    $Button_Settings.backcolor = $Color_Button
+    $Button_Settings.Add_MouseHover( {$Button_Settings.backcolor = $Color_ButtonHover})
+    $Button_Settings.Add_MouseLeave( {$Button_Settings.backcolor = $Color_Button})
+    $Button_Settings.Add_Click( {Open-Settings})
+    $MainUI.Controls.Add($Button_Settings)
+
+    # Button "only intunewin"
+    $Button_intunewin = New-Object System.Windows.Forms.Button
+    $Button_intunewin.Location = New-Object System.Drawing.Size(250, 260)
+    $Button_intunewin.Size = New-Object System.Drawing.Size(200, 30)
+    $Button_intunewin.Text = "only create intunewin"
+    $Button_intunewin.Name = "only create intunewin"
+    $Button_intunewin.backcolor = $Button_intunewin_color
+    $Button_intunewin.Add_MouseHover( {$Button_intunewin.backcolor = $Color_ButtonHover})
+    $Button_intunewin.Add_MouseLeave( {$Button_intunewin.backcolor = $Button_intunewin_color})
+    $Button_intunewin.Add_Click( {
+        if($global:SettingsVAR.intunewinOnly -eq "true"){$global:SettingsVAR.intunewinOnly = "false"}else{$global:SettingsVAR.intunewinOnly = "true"}
+        Restart-MainUI
+    })
+    $MainUI.Controls.Add($Button_intunewin) 
+
+    # Button "Close"
+    $Button_Close = New-Object System.Windows.Forms.Button
+    $Button_Close.Location = New-Object System.Drawing.Size(30, 300)
+    $Button_Close.Size = New-Object System.Drawing.Size(200, 30)
+    $Button_Close.Text = "Close"
+    $Button_Close.Name = "Close"
+    $Button_Close.DialogResult = "Cancel"
+    $Button_Close.backcolor = $Color_Button
+    $Button_Close.Add_MouseHover( {$Button_Close.backcolor = $Color_ButtonHover})
+    $Button_Close.Add_MouseLeave( {$Button_Close.backcolor = $Color_Button})
+    $Button_Close.Add_Click( {$MainUI.Close()})
+    $MainUI.Controls.Add($Button_Close)
+    # show window
+    [void] $MainUI.ShowDialog()
+
+}
+
+####################################################################################
+#   Modules
+####################################################################################
 Import-Module "MSAL.PS"
 Import-Module "IntuneWin32App"
+
+####################################################################################
+#   GO!
+####################################################################################
+Load-SettingVariables

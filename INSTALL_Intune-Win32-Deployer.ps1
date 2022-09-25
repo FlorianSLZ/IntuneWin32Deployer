@@ -38,6 +38,32 @@ try{
         $AppRepo | Export-CSV -Path $Repo_CSV_Path -NoTypeInformation -Encoding UTF8 -Delimiter ";"
     }
 
+    # create settings.xml if not present
+    $Settings_XML_Path = $ProgramPath + '\ressources\settings.xml'
+    $Settings_XML = @'
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="Tenant">xxx.onmicrosoft.com</S>
+      <S N="Publisher">scloud</S>
+      <S N="intunewinOnly">false</S>
+      <S N="PRupdater">false</S>
+      <S N="AADgrp">false</S>
+      <S N="AADgrpPrefix">APP-WIN-</S>
+    </MS>
+  </Obj>
+</Objs>
+'@
+    if(!$(Test-Path $Settings_XML_Path)){
+        $Settings_XML | Out-File $Settings_XML_Path
+    }
+
+
+
 }catch{$_}
 
 
@@ -50,33 +76,11 @@ try{
         Write-Host "Installing Module: MSAL.PS"
         Install-Module "MSAL.PS" -Scope CurrentUser -Force
     }
-    if (!$(Get-Module -ListAvailable -Name "IntuneWin32App" -ErrorAction SilentlyContinue)) {
+    if ($(Get-Module -ListAvailable -Name "IntuneWin32App" -ErrorAction SilentlyContinue).Version -ne "1.3.5") {
         Write-Host "Installing Module: IntuneWin32App"
-        Install-Module "IntuneWin32App" -RequiredVersion 1.3.3 -Scope CurrentUser -Force
+        Install-Module "IntuneWin32App" -RequiredVersion 1.3.5 -Scope CurrentUser -Force
     }
 }catch{$_}
-
-try{
-    # temporarry fix for IntuneWin32App module
-	$IntuneWin32App_usr = "$([Environment]::GetFolderPath(""MyDocuments""))\WindowsPowerShell\Modules\IntuneWin32App\1.3.3"
-	$IntuneWin32App_sys = "C:\Program Files\WindowsPowerShell\Modules\IntuneWin32App\1.3.3"
-    $oldLine = '$ScriptContent = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([System.IO.File]::ReadAllBytes("$($ScriptFile)") -join [Environment]::NewLine))'
-    $newLine = '$ScriptContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes("$($ScriptFile)"))'
-	if(Test-Path $IntuneWin32App_usr){
-        $File = "$IntuneWin32App_usr\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
-        if($(Get-Content $File) -match 'System.Text.Encoding'){(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File}
-    }
-	if(Test-Path $IntuneWin32App_sys){
-        $File = "$IntuneWin32App_sys\Public\New-IntuneWin32AppDetectionRuleScript.ps1"
-        if($(Get-Content $File) -match 'System.Text.Encoding'){(Get-Content $File).Replace($oldLine,$newLine) | Set-Content $File}
-    }
-	if($(Test-Path $IntuneWin32App_sys) -or (Test-Path $IntuneWin32App_usr)){}else{Write-Error "Module IntuneWin32App not found!"}
-    
-    
-}catch{
-    Write-Host "Unable to implement fix for detectionrule." -ForegroundColor red
-    Write-Host "If Module is already installed in System context. Try to execute the installer as Admin" -ForegroundColor yellow
-}
 
 
 #############################################################################################################

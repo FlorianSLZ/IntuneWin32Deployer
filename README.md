@@ -39,3 +39,4 @@ added in 1.2
 
 
 ## ChangeLog
+https://github.com/FlorianSLZ/Intune-Win32-Deployer/blob/main/ChangeLog.md

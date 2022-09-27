@@ -11,7 +11,7 @@
 #############################################################################################################
 
 # Required Modules 
-# Install-Module MSAL.PS, IntuneWin32App, AzureAD  -Scope CurrentUser -Force
+# Install-Module MSAL.PS, IntuneWin32App, Microsoft.Graph.Groups  -Scope CurrentUser -Force
 
 <#
     .SYNOPSIS
@@ -41,15 +41,13 @@ Param (
     [System.String] $Repo_CSV_Path = "$Repo_Path\Applications.csv",
 
     [Parameter(Mandatory = $False)]
-    [System.String] $IntuneWinAppUtil_online = "https://raw.githubusercontent.com/microsoft/Microsoft-Win32-Content-Prep-Tool/master/IntuneWinAppUtil.exe",  
-
-    [switch]$Force
+    [System.String] $IntuneWinAppUtil_online = "https://raw.githubusercontent.com/microsoft/Microsoft-Win32-Content-Prep-Tool/master/IntuneWinAppUtil.exe"
     
 )
 ####################################################################################
 #   Variables
 ####################################################################################
-$global:version_iwd = "2022.38.0"
+$global:version_iwd = "1.2.1"
 
 # Basic Variables 
 $global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
@@ -350,6 +348,11 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
         # Graph Connect 
         $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
 
+        # Connect MGGraph if needed
+        if(($($global:SettingsVAR.AADgrp) -eq "True") -or ($($global:SettingsVAR.AADUninstallgrp) -eq "True")){
+            $MGSession = Connect-MgGraph -Scopes $global:scopes
+        }
+
         # get .intunewin for Upload 
         $IntuneWinFile = "$Prg_Path\install.intunewin"
 
@@ -407,8 +410,9 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
     }
 
     if($($global:SettingsVAR.AADgrp) -eq "True"){Create-AADGroup $Prg}
+    if($($global:SettingsVAR.AADuninstallgrp) -eq "True"){Create-AADUninstallGroup $Prg}
     if($Prg.manager -like "*winget*"){
-        if($($global:SettingsVAR.PRupdater) -eq "True"){Create-PR $Prg}
+        if($($global:SettingsVAR.PRupdater) -eq "True"){Create-PRUpdater $Prg}
     }
 
 }
@@ -428,35 +432,193 @@ function Import-FromCatalog{
     }
 }
 
-function Create-PR ($Prg){
-    &"$Repo_Path\ressources\proactive-remediation-creation.ps1" `
-    -Publisher $global:SettingsVAR.Publisher `
-    -PAR_name "winget upgrade - $($Prg.Name)" `
-    -PAR_RunAs "system" `
-    -PAR_Scheduler "Daily" `
-    -PAR_Frequency 1 `
-    -PAR_StartTime "01:00" `
-    -PAR_RunAs32 $true `
-    -PAR_AADGroup "$($global:SettingsVAR.AADgrpPrefix )$($Prg.id)" `
-    -winget_id $($Prg.id)
-}
-
 function Create-AADGroup ($Prg){
     # Connect AAD if not connected
-    if ($null -eq $(try{[Microsoft.Open.Azure.AD.CommonLibrary.AzureSession]::AccessTokens}catch{})){ Connect-AzureAD }
+    $MGSession = Connect-MgGraph -Scopes $global:scopes
 
     # Create Group
     $grpname = "$($global:SettingsVAR.AADgrpPrefix )$($Prg.id)"
-    if(!$(Get-AzureADGroup -SearchString $grpname)){
+    if(!$(Get-MgGroup -Filter "DisplayName eq '$grpname'")){
         Write-Host "  Create AAD group for assigment:  $grpname" -Foregroundcolor cyan
-        $GrpObj = New-AzureADGroup -DisplayName "$grpname" -Description "App assigment: $($Prg.id) $($Prg.manager)" -MailEnabled $false -SecurityEnabled $true -MailNickName "NotSet"
-    }else{$GrpObj = Get-AzureADGroup -SearchString $grpname}
+        $GrpObj = New-MgGroup -DisplayName "$grpname" -Description "App assigment: $($Prg.id) $($Prg.manager)" -MailEnabled:$False  -MailNickName $grpname -SecurityEnabled
+    }else{$GrpObj = Get-MgGroup -Filter "DisplayName eq '$grpname'"}
 
     # Add App Assigment
     Write-Host "  Assign Group > $grpname <  to  > $($Prg.Name) <" -Foregroundcolor cyan
     $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
     $Win32App = Get-IntuneWin32App -DisplayName "$($Prg.Name)"
-    Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $GrpObj.ObjectId -Intent "required" -Notification "showAll"
+    Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $GrpObj.id -Intent "required" -Notification "showAll"
+}
+
+
+function Create-AADUninstallGroup ($Prg){
+    # Connect AAD if not connected
+    $MGSession = Connect-MgGraph -Scopes $global:scopes
+
+    # Create Group
+    $grpUNname = "$($global:SettingsVAR.AADgrpPrefix )$($Prg.id)_uninstall"
+    if(!$(Get-MgGroup -Filter "DisplayName eq '$grpUNname'")){
+        Write-Host "  Create AAD group for uninstall assigment:  $grpUNname" -Foregroundcolor cyan
+        $GrpObj = New-MgGroup -DisplayName "$grpUNname" -Description "App uninstall assigment: $($Prg.id) $($Prg.manager)" -MailEnabled:$False  -MailNickName $grpUNname -SecurityEnabled
+    }else{$GrpObj = Get-MgGroup -Filter "DisplayName eq '$grpUNname'"}
+
+    # Add App Assigment
+    Write-Host "  Assign Uninstaller Group > $grpUNname <  to  > $($Prg.Name) <" -Foregroundcolor cyan
+    $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
+    $Win32App = Get-IntuneWin32App -DisplayName "$($Prg.Name)"
+    Add-IntuneWin32AppAssignmentGroup -Include -ID $Win32App.id -GroupID $GrpObj.id -Intent "uninstall" -Notification "showReboot"
+}
+
+function Create-PRUpdater ($Prg){
+   
+
+    $Publisher = $global:SettingsVAR.Publisher
+    $PAR_name ="winget upgrade - $($Prg.Name)"
+    $winget_id =$($Prg.id)
+    $PAR_description = "Created via Intune Win32 Deployer"
+    $PAR_RunAs = "system"
+    $PAR_Scheduler = "Daily"
+    $PAR_Frequency = "1"
+    $PAR_StartTime = "01:00"
+    $PAR_RunAs32 = $false
+    $PAR_AADGroup = "$($global:SettingsVAR.AADgrpPrefix )$($Prg.id)"
+    $PAR_detection_path = "$Repo_Path\Proactive Remediations\$PAR_name\detection-winget-upgrade.ps1"
+    $PAR_remediation_path = "$Repo_Path\Proactive Remediations\$PAR_name\remediation-winget-upgrade.ps1"
+
+    #   Create Detection and Remediation Script
+    $script_detection = @'
+    $app_2upgrade = "WINGETPROGRAMID"
+
+    $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\winget.exe")
+
+    if ($(&$winget upgrade) -like "* $app_2upgrade *") {
+        Write-Host "Upgrade available for: $app_2upgrade"
+        exit 1 # upgrade available, remediation needed
+    }
+    else {
+            Write-Host "No Upgrade available"
+            exit 0 # no upgared, no action needed
+    }
+'@
+
+    $script_remediation = @'
+    $app_2upgrade = "WINGETPROGRAMID"
+
+    try{
+        $Winget = Get-ChildItem -Path (Join-Path -Path (Join-Path -Path $env:ProgramFiles -ChildPath "WindowsApps") -ChildPath "Microsoft.DesktopAppInstaller*_x64*\winget.exe")
+
+        # upgrade command
+        &$winget upgrade --exact $app_2upgrade --silent --force --accept-package-agreements --accept-source-agreements
+        exit 0
+
+    }catch{
+        Write-Error "Error while installing upgarde for: $app_2upgrade"
+        exit 1
+    }
+
+'@
+
+    # Create and save
+    $PAR_detection = $script_detection.replace("WINGETPROGRAMID","$winget_id") 
+    $PAR_detection | Out-File (New-Item $PAR_detection_path -Type File -Force) -Encoding utf8
+    $PAR_remediation = $script_remediation.replace("WINGETPROGRAMID","$winget_id") 
+    $PAR_remediation | Out-File (New-Item $PAR_remediation_path -Type File -Force) -Encoding utf8
+
+
+
+    #   Create the Proactive remediation script package
+    $params = @{
+            DisplayName = $PAR_name
+            Description = $PAR_description
+            Publisher = $Publisher
+            PAR_RunAs32Bit = $PAR_RunAs32
+            RunAsAccount = $PAR_RunAs
+            EnforceSignatureCheck = $false
+            DetectionScriptContent = [System.Text.Encoding]::ASCII.GetBytes($PAR_detection)
+            RemediationScriptContent = [System.Text.Encoding]::ASCII.GetBytes($PAR_remediation)
+            RoleScopeTagIds = @(
+                    "0"
+            )
+    }
+    Write-Host " "
+    Connect-MSGraph
+
+    Write-Host "Creating Proactive Remediation: $PAR_name" -ForegroundColor Cyan
+    $graphApiVersion = "beta"
+    $Resource = "deviceManagement/deviceHealthScripts"
+    $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
+
+    try {
+        $proactive = Invoke-MSGraphRequest -Url $uri -HttpMethod Post -Content $params
+        Write-Host "Proactive Remediation Created" -ForegroundColor Green
+    }
+    catch {
+        Write-Error $_.Exception
+    }
+
+    Connect-MgGraph
+
+    #   Get Group ID
+    $AADGroupID = (Get-MgGroup -Filter "DisplayName eq '$PAR_AADGroup'").id
+        if($AADGroupID){
+        ##Set the JSON
+        if ($PAR_Scheduler -eq "Hourly") {
+            Write-Host "  Assigning Hourly Schedule running every $PAR_Frequency hours"
+        $params = @{
+            DeviceHealthScriptAssignments = @(
+                @{
+                    Target = @{
+                        "@odata.type" = "#microsoft.graph.groupAssignmentTarget"
+                        GroupId = $AADGroupID
+                    }
+                    RunRemediationScript = $true
+                    RunSchedule = @{
+                        "@odata.type" = "#microsoft.graph.deviceHealthScriptHourlySchedule"
+                        Interval = $PAR_Frequency
+                    }
+                }
+            )
+        }
+        }
+        else {
+            Write-Host "Assigning Daily Schedule running at $PAR_StartTime each $PAR_Frequency days"
+            $params = @{
+                DeviceHealthScriptAssignments = @(
+                    @{
+                        Target = @{
+                            "@odata.type" = "#microsoft.graph.groupAssignmentTarget"
+                            GroupId = $AADGroupID
+                        }
+                        RunRemediationScript = $true
+                        RunSchedule = @{
+                            "@odata.type" = "#microsoft.graph.deviceHealthScriptDailySchedule"
+                            Interval = $PAR_Frequency
+                            Time = $PAR_StartTime
+                            UseUtc = $false
+                        }
+                    }
+                )
+            }
+            }
+
+        $remediationID = $proactive.ID
+
+
+        $graphApiVersion = "beta"
+        $Resource = "deviceManagement/deviceHealthScripts"
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource/$remediationID/assign"
+
+        try {
+            $proactive = Invoke-MSGraphRequest -Url $uri -HttpMethod Post -Content $params
+        }
+        catch {
+            Write-Error $_.Exception 
+            
+        }
+    }else{
+        Write-Host "Group $PAR_AADGroup not found, PAR createt but not assigned" -ForegroundColor Yellow
+    }
+
 }
 
 ####################################################################################
@@ -513,8 +675,8 @@ function Open-Settings{
     
     # Set the size of your form
     $form_Settings = New-Object System.Windows.Forms.Form
-    $form_Settings.width = 500
-    $form_Settings.height = 300
+    $form_Settings.width = 400
+    $form_Settings.height = 350
     $form_Settings.Text = "Settings"
     $form_Settings.Backcolor = "#FFFFFF"
     $form_Settings.Icon = $global:ProgramIcon
@@ -562,29 +724,38 @@ function Open-Settings{
     $Box_grpPrefix.Text = $global:SettingsVAR.AADgrpPrefix
     $form_Settings.Controls.Add($Box_grpPrefix)
     
-    # AAD group checkbox 
+    # AAD install group checkbox 
     $checkbox_grp = new-object System.Windows.Forms.checkbox
     $checkbox_grp.Location = new-object System.Drawing.Size(30,130)
     $checkbox_grp.Size = new-object System.Drawing.Size(250,20)
-    $checkbox_grp.Text = "Creat/Assign group per App"
+    $checkbox_grp.Text = "Creat/Assign group per app"
     $checkbox_grp.Checked = [System.Convert]::ToBoolean($global:SettingsVAR.AADgrp)
     $form_Settings.Controls.Add($checkbox_grp)
 
+    # AAD UNinstall group checkbox 
+    $checkbox_uninstallgrp = new-object System.Windows.Forms.checkbox
+    $checkbox_uninstallgrp.Location = new-object System.Drawing.Size(30,170)
+    $checkbox_uninstallgrp.Size = new-object System.Drawing.Size(250,20)
+    $checkbox_uninstallgrp.Text = "Creat/Assign uninstall group per app"
+    $checkbox_uninstallgrp.Checked = [System.Convert]::ToBoolean($global:SettingsVAR.AADuninstallgrp)
+    $form_Settings.Controls.Add($checkbox_uninstallgrp)
+
     # proactive remediations checkbox 
     $checkbox_PR = new-object System.Windows.Forms.checkbox
-    $checkbox_PR.Location = new-object System.Drawing.Size(30,170)
+    $checkbox_PR.Location = new-object System.Drawing.Size(30,210)
     $checkbox_PR.Size = new-object System.Drawing.Size(250,20)
-    $checkbox_PR.Text = "Create PR per App"
+    $checkbox_PR.Text = "Create PR per app"
     $checkbox_PR.Checked = [System.Convert]::ToBoolean($global:SettingsVAR.PRupdater)
     $form_Settings.Controls.Add($checkbox_PR)  
  
     # OK button
     $OKButton = new-object System.Windows.Forms.Button
-    $OKButton.Location = new-object System.Drawing.Size(30,210)
+    $OKButton.Location = new-object System.Drawing.Size(30,250)
     $OKButton.Size = new-object System.Drawing.Size(100,40)
     $OKButton.Text = "OK"
     $OKButton.Add_Click({
         $global:SettingsVAR.AADgrp = $checkbox_grp.Checked
+        $global:SettingsVAR.AADuninstallgrp = $checkbox_uninstallgrp.Checked
         $global:SettingsVAR.PRupdater = $checkbox_PR.Checked
         $global:SettingsVAR.AADgrpPrefix = $Box_grpPrefix.Text
         $global:SettingsVAR.Publisher = $Box_publisher.Text
@@ -797,6 +968,11 @@ function Start-MainUI{
 ####################################################################################
 Import-Module "MSAL.PS"
 Import-Module "IntuneWin32App"
+Import-Module "Microsoft.Graph.Groups"
+$global:scopes = @(
+    "Group.ReadWrite.All"
+)
+
 
 ####################################################################################
 #   GO!

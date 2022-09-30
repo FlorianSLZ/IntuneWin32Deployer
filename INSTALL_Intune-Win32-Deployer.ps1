@@ -54,7 +54,6 @@ try{
 
     if($SettingsCurrent_Members -notcontains "Tenant"){ $SettingsCurrent | Add-Member -NotePropertyName "Tenant" -NotePropertyValue "xxx.onmicrosoft.com" }
     if($SettingsCurrent_Members -notcontains "Publisher"){ $SettingsCurrent | Add-Member -NotePropertyName "Publisher" -NotePropertyValue "scloud" }
-    if($SettingsCurrent_Members -notcontains "intunewinOnly"){ $SettingsCurrent | Add-Member -NotePropertyName "intunewinOnly" -NotePropertyValue $False }
     if($SettingsCurrent_Members -notcontains "PRupdater"){ $SettingsCurrent | Add-Member -NotePropertyName "PRupdater" -NotePropertyValue $False }
     if($SettingsCurrent_Members -notcontains "AADgrp"){ $SettingsCurrent | Add-Member -NotePropertyName "AADgrp" -NotePropertyValue $False }
     if($SettingsCurrent_Members -notcontains "AADuninstallgrp"){ $SettingsCurrent | Add-Member -NotePropertyName "AADuninstallgrp" -NotePropertyValue $False }
@@ -84,8 +83,11 @@ try{
         Write-Host "Installing Module: Microsoft.Graph.Groups"
         Install-Module "Microsoft.Graph.Groups" -Scope CurrentUser -Force
     }
+    if (!$(Get-Module -ListAvailable -Name "Microsoft.Graph.Intune" -ErrorAction SilentlyContinue)) {
+        Write-Host "Installing Module: Microsoft.Graph.Intune"
+        Install-Module "Microsoft.Graph.Intune" -Scope CurrentUser -Force
+    }
 }catch{$_}
-
 
 #############################################################################################################
 #   Chocolatey & Windows Package Manager

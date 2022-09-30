@@ -11,7 +11,7 @@
 #############################################################################################################
 
 # Required Modules 
-# Install-Module MSAL.PS, IntuneWin32App, Microsoft.Graph.Groups  -Scope CurrentUser -Force
+# Install-Module MSAL.PS, IntuneWin32App, Microsoft.Graph.Groups, Microsoft.Graph.Intune  -Scope CurrentUser -Force
 
 <#
     .SYNOPSIS
@@ -47,13 +47,14 @@ Param (
 ####################################################################################
 #   Variables
 ####################################################################################
-$global:version_iwd = "1.2.1"
+$global:version_iwd = "1.2.2"
 
 # Basic Variables 
 $global:ProgramPath = "$env:LOCALAPPDATA\Intune-Win32-Deployer"
 $global:SettingsPath = $global:ProgramPath + '\ressources\settings.xml'
 $global:ProgramIcon = $global:ProgramPath + '\ressources\Intune-Win32-Deployer.ico'
 $global:Status = "ready"
+$global:intunewinOnly = $false
 # Colors
 $global:Color_Button = "#0288d1"
 $global:Color_ButtonHover = "#4fc3f7"
@@ -249,7 +250,7 @@ function Create-ChocoWin32App($Prg){
 
 function Create-Chocolatey4Dependency {
     try{
-        if($($global:SettingsVAR.intunewinOnly) -eq "false"){
+        if($($global:intunewinOnly) -eq $false){
             $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
 
             $App = @()
@@ -271,7 +272,7 @@ function Create-Chocolatey4Dependency {
 
 function Create-winget4Dependency {
     try{
-        if($($global:SettingsVAR.intunewinOnly) -eq "false"){
+        if($($global:intunewinOnly) -eq $false){
             $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
 
             $App = @()
@@ -331,7 +332,7 @@ function Compile-Win32_intunewin($Prg, $Prg_Path, $Prg_img) {
     # create intunewin file
     Start-Process "$Repo_Path\ressources\IntuneWinAppUtil.exe" -Argument "-c ""$Prg_Path"" -s install.ps1 -o ""$Prg_Path"" -q" -Wait -WindowStyle hidden
 
-    if($($global:SettingsVAR.intunewinOnly) -eq "false"){
+    if($($global:intunewinOnly) -eq $false){
         # Upload app
         Upload-Win32App $Prg $Prg_Path $Prg_img
     }else{
@@ -420,7 +421,7 @@ function Upload-Win32App ($Prg, $Prg_Path, $Prg_img){
 
 function Import-FromCatalog{
     $Prg_selection = Read-AppRepo | Out-GridView -OutputMode Multiple -Title "Select Applications to create and upload"
-    $Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant
+    if($global:intunewinOnly -eq $false){$Session = Connect-MSIntuneGraph -TenantID $SettingsVAR.Tenant}
     if($Prg_selection.manager -like "*choco*"){CheckInstall-LocalChocolatey}
     if($Prg_selection.manager -like "*choco*"){Create-Chocolatey4Dependency}
     if($Prg_selection.manager -like "*winget*"){Create-winget4Dependency}
@@ -471,6 +472,7 @@ function Create-AADUninstallGroup ($Prg){
 
 function Create-PRUpdater ($Prg){
    
+    Write-Host "Creating Proactive Remediation: $PAR_name" -ForegroundColor Cyan
 
     $Publisher = $global:SettingsVAR.Publisher
     $PAR_name ="winget upgrade - $($Prg.Name)"
@@ -519,6 +521,7 @@ function Create-PRUpdater ($Prg){
 '@
 
     # Create and save
+    New-Item -Path "$Repo_Path\Proactive Remediations\$PAR_name" -Type Directory -Force
     $PAR_detection = $script_detection.replace("WINGETPROGRAMID","$winget_id") 
     $PAR_detection | Out-File (New-Item $PAR_detection_path -Type File -Force) -Encoding utf8
     $PAR_remediation = $script_remediation.replace("WINGETPROGRAMID","$winget_id") 
@@ -543,7 +546,6 @@ function Create-PRUpdater ($Prg){
     Write-Host " "
     Connect-MSGraph
 
-    Write-Host "Creating Proactive Remediation: $PAR_name" -ForegroundColor Cyan
     $graphApiVersion = "beta"
     $Resource = "deviceManagement/deviceHealthScripts"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource"
@@ -581,7 +583,7 @@ function Create-PRUpdater ($Prg){
         }
         }
         else {
-            Write-Host "Assigning Daily Schedule running at $PAR_StartTime each $PAR_Frequency days"
+            Write-Host "  Assigning Daily Schedule running at $PAR_StartTime each $PAR_Frequency days"
             $params = @{
                 DeviceHealthScriptAssignments = @(
                     @{
@@ -827,7 +829,7 @@ function SearchForm-AddApp ($title, $description, $onlinesearch_text, $onlinesea
 function Start-MainUI{
 
     # Color - variable
-    if($global:SettingsVAR.intunewinOnly -eq "true"){$Button_intunewin_color  = "#EAB676"}else{$Button_intunewin_color  = "#A5A5A5"}
+    if($global:intunewinOnly -eq $true){$Button_intunewin_color  = "#EAB676"}else{$Button_intunewin_color  = "#A5A5A5"}
     
     # Main window
     [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
@@ -941,7 +943,7 @@ function Start-MainUI{
     $Button_intunewin.Add_MouseHover( {$Button_intunewin.backcolor = $Color_ButtonHover})
     $Button_intunewin.Add_MouseLeave( {$Button_intunewin.backcolor = $Button_intunewin_color})
     $Button_intunewin.Add_Click( {
-        if($global:SettingsVAR.intunewinOnly -eq "true"){$global:SettingsVAR.intunewinOnly = "false"}else{$global:SettingsVAR.intunewinOnly = "true"}
+        if($global:intunewinOnly -eq $true){$global:intunewinOnly = $false}else{$global:intunewinOnly = $true}
         Restart-MainUI
     })
     $MainUI.Controls.Add($Button_intunewin) 

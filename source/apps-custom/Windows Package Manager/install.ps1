@@ -3,7 +3,7 @@ $Package_winget = "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
 $URL_winget = "https://aka.ms/getwinget"
 
 $Path_local = "$Env:Programfiles\_MEM"
-Start-Transcript -Path "$Path_local\Log\$ProgramName-install.log" -Force
+Start-Transcript -Path "$Path_local\Log\$PackageName-install.log" -Force
 
 # Force using TLS 1.2 connection
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12

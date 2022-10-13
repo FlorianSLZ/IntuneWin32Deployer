@@ -22,6 +22,6 @@ if ($ResolveWingetPath) {
 }
 
 
-& "$Winget" install --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements --scope Machine $param
+& "$Winget" install --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements $param
 
 Stop-Transcript

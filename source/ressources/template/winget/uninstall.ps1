@@ -1,12 +1,15 @@
 ﻿$ProgramName = "WINGETPROGRAMID"
-$Path_4Log = "$Env:Programfiles\_MEM"
-Start-Transcript -Path "$Path_4Log\Log\uninstall\$ProgramName-uninstall.log" -Force
+$Path_local = "$Env:Programfiles\_MEM"
+Start-Transcript -Path "$Path_local\Log\uninstall\$ProgramName-uninstall.log" -Force -Append
 
-# resolve and navigate to winget
-$Path_WingetAll = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
-if($Path_WingetAll){$Path_Winget = $Path_WingetAll[-1].Path}
-cd $Path_Winget
+# resolve winget_exe
+$winget_exe = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"
+if ($winget_exe.count -gt 1){
+        $winget_exe = $winget_exe[-1].Path
+}
 
-.\winget.exe uninstall --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements
+if (!$winget_exe){Write-Error "Winget not installed"}
+
+& $winget_exe uninstall --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements
 
 Stop-Transcript

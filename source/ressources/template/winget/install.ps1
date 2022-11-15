@@ -6,22 +6,17 @@
   )
   
 $ProgramName = "WINGETPROGRAMID"
-$Path_4Log = "$Env:Programfiles\_MEM"
-Start-Transcript -Path "$Path_4Log\Log\$ProgramName-install.log" -Force
+$Path_local = "$Env:Programfiles\_MEM"
+Start-Transcript -Path "$Path_local\Log\$ProgramName-install.log" -Force -Append
 
-
-#Get WinGet Path (system)
-$ResolveWingetPath = Resolve-Path "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
-if ($ResolveWingetPath) {
-    #If multiple versions (when pre-release versions are installed), pick last one
-    $WingetPath = $ResolveWingetPath[-1].Path
-    $Script:Winget = "$WingetPath\winget.exe"
-}else{
-    Write-Error "Winget not installed!"
-    exit 1
+# resolve winget_exe
+$winget_exe = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"
+if ($winget_exe.count -gt 1){
+        $winget_exe = $winget_exe[-1].Path
 }
 
+if (!$winget_exe){Write-Error "Winget not installed"}
 
-& "$Winget" install --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements $param
+& $winget_exe install --exact --id $ProgramName --silent --accept-package-agreements --accept-source-agreements --scope=machine $param
 
 Stop-Transcript

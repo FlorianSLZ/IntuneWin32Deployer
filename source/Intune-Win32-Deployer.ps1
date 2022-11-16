@@ -71,7 +71,7 @@ function Check-Version {
     $version_github = (Invoke-webrequest -URI "https://raw.githubusercontent.com/FlorianSLZ/Intune-Win32-Deployer/main/source/ressources/version").Content
     if([System.Version]$global:version_github -ge [System.Version]$version_iwd){
         $updateYN = New-Object -ComObject Wscript.Shell
-        if($($updateYN.Popup("New version aviable: $version_github. Do you want to update?",0,"Alert",64+4)) -eq 6){
+        if($($updateYN.Popup("New version available: $version_github. Do you want to update?",0,"Alert",64+4)) -eq 6){
             # Download latest version
             $GitHubRepo_url = "https://github.com/FlorianSLZ/Intune-Win32-Deployer/archive/refs/heads/main.zip"
             $GitHubRepo_name = "Intune-Win32-Deployer"
@@ -147,7 +147,7 @@ function SearchAdd-WinGetApp ($searchText) {
 }
 
 function Create-WingetWin32App($Prg){
-    Write-Host "Creat win32 package for $($Prg.id) (Microsoft Package Manager)" -Foregroundcolor cyan
+    Write-Host "Create win32 package for $($Prg.id) (Microsoft Package Manager)" -Foregroundcolor cyan
 
     # Set and create program folder
     $Prg_Path = "$Repo_winget\$($Prg.id)"
@@ -301,7 +301,7 @@ function CheckInstall-LocalChocolatey{
 }
 
 function Create-CustomWin32App($Prg){
-    Write-Host "Creat win32 package for $($Prg.name) (custom, no Package Manager)" -Foregroundcolor cyan
+    Write-Host "Create win32 package for $($Prg.name) (custom, no Package Manager)" -Foregroundcolor cyan
 
     # check appliaction name and set if not present
     if(!$Prg.name){

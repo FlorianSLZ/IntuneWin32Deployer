@@ -309,14 +309,14 @@ function Create-CustomWin32App($Prg){
     }
 
     # Set program folder
-    $Prg_Path = "$Repo_custom\$($Prg.name)"
+    $Prg_Path = "$Repo_custom\$($Prg.id)"
 
     # check for img
     if(Get-ChildItem $Prg_Path -Filter "$($Prg.id).png"){
         $Prg_img = "$Prg_Path\$($Prg.id).png"
     }else{
         if(Get-ChildItem $Prg_Path -Filter "$($Prg.name).png"){
-            $Prg_img = "$Prg_Path\$($Prg.name).png"
+            $Prg_img = "$Prg_Path\$($Prg.id).png"
         }else{
             $Prg_img = "$Repo_Path\ressources\template\custom\program.png"
         }

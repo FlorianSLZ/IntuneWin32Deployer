@@ -316,7 +316,7 @@ function Create-CustomWin32App($Prg){
         $Prg_img = "$Prg_Path\$($Prg.id).png"
     }else{
         if(Get-ChildItem $Prg_Path -Filter "$($Prg.name).png"){
-            $Prg_img = "$Prg_Path\$($Prg.id).png"
+            $Prg_img = "$Prg_Path\$($Prg.name).png"
         }else{
             $Prg_img = "$Repo_Path\ressources\template\custom\program.png"
         }

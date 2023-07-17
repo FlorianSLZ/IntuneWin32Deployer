@@ -293,7 +293,7 @@ function Create-winget4Dependency {
 
 function CheckInstall-LocalChocolatey{
     # Check if chocolatey is installed
-    $CheckChocolatey = C:\ProgramData\chocolatey\choco.exe list --localonly
+    $CheckChocolatey = C:\ProgramData\chocolatey\choco.exe list
     if (!$CheckChocolatey){
         Write-Host "Instaling Chocolatey (on local machine)"
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))

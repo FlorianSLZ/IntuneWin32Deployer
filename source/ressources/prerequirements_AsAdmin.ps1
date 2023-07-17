@@ -31,7 +31,7 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 if($choco -eq $true){
     # Check if chocolatey is installed
-    $Check_Chocolatey = try{C:\ProgramData\chocolatey\choco.exe list --localonly}catch{}
+    $Check_Chocolatey = try{C:\ProgramData\chocolatey\choco.exe list}catch{}
     if (!$Check_Chocolatey){
         try{
             Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) 

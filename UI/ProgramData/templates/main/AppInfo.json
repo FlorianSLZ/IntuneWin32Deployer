@@ -1,0 +1,34 @@
+{
+    "Name":  "",
+    "EvergreenName":  "",
+    "Version":  "",
+    "Platform":  "",
+    "Channel":  "",
+    "Ring":  "",
+    "Release":  "",
+    "Architecture":  "",
+    "Type":  "",
+    "Language":  "",
+    "AppParams":  "",
+    "Publisher":  "scloud",
+    "InstallExperience": "system",
+    "InformationURL": "",
+    "Notes": "",
+    "InstallFile":  "Deploy-Application.exe",
+    "Installer":  "",
+    "InstallParameters":  "/qn",
+    "Description":  "",
+    "InstallCmdLine":  "Deploy-Application.exe -DeploymentType \"Install\" -DeployMode \"Silent\"",
+    "UninstallCmdLine":  "Deploy-Application.exe -DeploymentType \"Uninstall\" -DeployMode \"Silent\"",
+    "detection":  {
+        "Registry":  {
+            "Name":  "Version",
+            "KeyPath":  "HKEY_LOCAL_MACHINE\\SOFTWARE\\scloud\\Packages\\AppName",
+            "Type":  "String",
+            "DetectionType":  "equal",
+            "Value": "VersionNumber",
+            "RegistryDetectionOperator": "notConfigured",
+            "Check32BitRegOn64System":  false
+        }
+    }
+}

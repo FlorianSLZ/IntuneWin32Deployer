@@ -1,0 +1,131 @@
+<Window Title="Edit JSON Data" Height="800" Width="600" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/> <!-- JSON properties area -->
+            <RowDefinition Height="Auto"/> <!-- Save button area -->
+        </Grid.RowDefinitions>
+
+        <!-- JSON properties area -->
+        <StackPanel Grid.Row="0" Margin="10">
+            <!-- Add textboxes for each JSON property -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Name:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Name" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="EvergreenName:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_EvergreenName" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Version:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Version" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Platform:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Platform" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Channel:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Channel" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Ring:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Ring" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Release:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Release" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Architecture:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Architecture" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Type:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Type" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Language:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Language" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="AppParams:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_AppParams" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Publisher:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Publisher" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="InstallExperience:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_InstallExperience" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="InformationURL:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_InformationURL" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Notes:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Notes" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="InstallFile:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_InstallFile" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Installer:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Installer" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="InstallParameters:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_InstallParameters" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Description:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_Description" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="InstallCmdLine:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_InstallCmdLine" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="UninstallCmdLine:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_UninstallCmdLine" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Detection - Registry Name:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_RegistryName" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Detection - Registry KeyPath:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_RegistryKeyPath" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Detection - Registry Type:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_RegistryType" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Detection - Registry DetectionType:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_RegistryDetectionType" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Detection - Registry Value:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_RegistryValue" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Detection - Registry RegistryDetectionOperator:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_RegistryDetectionOperator" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Detection - Registry Check32BitRegOn64System:" VerticalAlignment="Center" Width="120"/>
+                <TextBox x:Name="textbox_RegistryCheck32BitRegOn64System" VerticalAlignment="Center" Width="120"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Save button area -->
+        <StackPanel Grid.Row="1" Margin="10" HorizontalAlignment="Center">
+            <Button x:Name="button_Save" Width="100" Content="Save"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,86 @@
+<Window x:Class="WpfApp2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp2"
+        mc:Ignorable="d"
+        Title="IntuneWin32Deployer UI" Height="600" Width="900" WindowStartupLocation="CenterScreen">
+    <Grid Background="#fefefe">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>   <!-- Header row with fixed height of 30 -->
+            <RowDefinition Height="*"/>    <!-- Content row that takes the remaining height -->
+        </Grid.RowDefinitions>
+
+        <!-- Header (Help & Settings in a row with black background) -->
+        <Grid Grid.Row="0" Background="#262626">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>   <!-- Left space for the title -->
+                <ColumnDefinition Width="*"/>      <!-- Space for the buttons to expand -->
+                <ColumnDefinition Width="Auto"/>   <!-- Right space for spacing if needed -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Help & Settings in a row -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Background="#262626" HorizontalAlignment="Left">
+                <Button x:Name="button_help" Content="Help" Margin="30,0,0,0" Background="#262626" Foreground="#fefefe" BorderThickness="0" Width="80"/>
+                <Button x:Name="button_settings" Content="Settings" Background="#262626" Foreground="#fefefe" BorderThickness="0" Width="80"/>
+                <Button x:Name="button_login" Content="Login" Background="#262626" Foreground="#fefefe" BorderThickness="0" Width="80"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Sidebar -->
+        <StackPanel Grid.Row="1" Orientation="Vertical" Width="200" Background="#333333" HorizontalAlignment="Left">
+            <ListBox x:Name="sidebar" BorderThickness="0">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Height" Value="50"/>
+                        <Setter Property="Background" Value="#333333"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3474eb"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBoxItem x:Name="sidebar_All" Content="All" Foreground="White" FontSize="16" FontWeight="Bold" />
+                <ListBoxItem x:Name="sidebar_Winget" Content="Winget" Foreground="White" FontSize="16" FontWeight="Bold" />
+                <ListBoxItem x:Name="sidebar_Choco" Content="Chocolatey" Foreground="White" FontSize="16" FontWeight="Bold" />
+                <ListBoxItem x:Name="sidebar_Custom" Content="Custom" Foreground="White" FontSize="16" FontWeight="Bold" />
+            </ListBox>
+        </StackPanel>
+
+        <!-- Title -->
+        <TextBlock Text="IntuneWin32Deployer" FontSize="20" FontWeight="Bold" VerticalAlignment="Top" Margin="230,30,0,0" Grid.Row="1" />
+
+        <!-- Upload, Edit, Remove -->
+        <Button x:Name="button_UploadApp" Content="Upload App to Intune" HorizontalAlignment="Right" Margin="0,0,30,50" VerticalAlignment="Bottom" Width="150" Height="26" Background="#FFA1CEFF" FontWeight="Bold" BorderThickness="0" Grid.Row="1"/>
+        <Button x:Name="button_editApp" Content="Edit App" HorizontalAlignment="Right" Margin="0,0,200,50" VerticalAlignment="Bottom" Width="150" Height="26" Background="#FFA1CEFF" FontWeight="Bold" BorderThickness="0" Grid.Row="1"/>
+        <Button x:Name="button_removeApp" Content="Remove App" HorizontalAlignment="Right" Margin="0,0,370,50" VerticalAlignment="Bottom" Width="150" Height="26" Background="#ff3d40" FontWeight="Bold" BorderThickness="0" Grid.Row="1"/>
+
+        <!-- Add -->
+        <TextBox x:Name="text_addApp" HorizontalAlignment="Left" Margin="230,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="192" Height="30" FontSize="14" Background="#b8b8b8" BorderThickness="0" Grid.Row="1"/>
+        <Button x:Name="button_addApp" Content="Add App" HorizontalAlignment="Left" Margin="430,100,0,0" VerticalAlignment="Top" Height="30" Width="120" BorderThickness="0" Background="#32CD32" FontWeight="Bold" Grid.Row="1"/>
+        <TextBlock x:Name="text_addInfo" Text="(i) To add a new application, first select the type in the sidebar." HorizontalAlignment="Left" Margin="230,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="470" Height="30" FontSize="14" Grid.Row="1"/>
+
+
+        <!-- App GridView -->
+        <DataGrid x:Name="dataGrid_Apps" HorizontalAlignment="Left" Margin="230,150,0,0" VerticalAlignment="Top" Width="470" AutoGenerateColumns="False" SelectionMode="Single" IsReadOnly="True" CanUserAddRows="False" AlternatingRowBackground="#F2F2F2" RowBackground="#EFEFEF" Grid.Row="1" BorderThickness="0" HeadersVisibility="Column" >
+            <DataGrid.Resources>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Padding" Value="6" />
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                <DataGridTextColumn Header="Version" Binding="{Binding Version}" />
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Copyright -->
+        <TextBlock x:Name="text_copyright" HorizontalAlignment="Right" Margin="0,0,30,10" TextWrapping="Wrap" VerticalAlignment="Bottom" Grid.Row="1"><Run Language="en-us" Text="Author"/></TextBlock>        
+
+    
+    </Grid>
+</Window>

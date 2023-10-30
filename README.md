@@ -1,42 +1,13 @@
-[![Twitter Follow](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/FlorianSLZ/)  [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/fsalzmann/)  [![Website](https://img.shields.io/badge/website-000000?style=for-the-badge&logo=About.me&logoColor=white)](https://scloud.work/en/about)
+|Florian Salzmann|[![Twitter Follow](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/FlorianSLZ/)  [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/fsalzmann/)  [![Website](https://img.shields.io/badge/website-000000?style=for-the-badge&logo=About.me&logoColor=white)](https://scloud.work/en/about)|
+|----------------|-------------------------------|
 
+# IntuneWin32Deployer (PowerShell Module & UI)
 
-# Intune Win32 Deployer
+This repository is divided into two parts. The module itself and its UI. 
 
+| Module    | UI    |
+|----------------|-------------------------------|
+| [Module @GitHub](https://github.com/FlorianSLZ/IntuneWin32Deployer/tree/main/Module) |  [UI @GitHub](https://github.com/FlorianSLZ/IntuneWin32Deployer/tree/main/UI)  |
 
-Create and deploy winget and chocolatey (win32) apps to Intune with one click!
-
-## Installation
-To install just download the whole repository and execute the "INSTALL_Intune-Win32-Deployer.ps1" in the root folder. 
-This will copy the program files to your local Appdata and creates a shortcut in the start menu. (no Desktop icon, cause I don't like those). 
-
-In addition the installer asks you if you want to install winget and chocolatey (as an admin). 
-
-
-## Blogpost / Wiki
-An overview and some how-to's I put together on my blog: [The "Intune Win32 Deployer"](https://scloud.work/en/intune-win32-deployer/)
-
-## Functions
-- Create Intunewin for winget applications
-- Create Intunewin for Chocolatey applications
-- Deploy winget via Intune (as system)
-- Deploy Chocolatey via Intune
-- Transform programs from the Windows Package Manager into an intunewin
-- Transform programs from Chocolatey into an intunewin
-- Create Win32 applications upload to Intune
-- Maintaining an inventory list within the application
-- Install winget (optional)
-- Install Chocolatey (optional)
-- Current Microsoft Win32 Content Prep Tool download
-
-added in 1.2
-- Create AAD group per win32 app (install and uninstall)
-- Define AAD group prefix
-- Create Proactive Remediation package per app to update [how it works](https://scloud.work/winget-updates-proactive-remediations/)
-
-## Demo 
-[![DEMO](https://img.youtube.com/vi/f77XANBj95c/0.jpg)](https://youtu.be/f77XANBj95c "DEMO")
-
-
-## ChangeLog
-https://github.com/FlorianSLZ/Intune-Win32-Deployer/blob/main/ChangeLog.md
+# Functions
+The "Intune Win32 Deployer" allows you to transform Windows Package Manager (winget) and Chocolatey installations for Intune into a Win32 application (intunewin) and upload it straight away to your MEM environment. If you want to do without the automatic upload, you can also just generate the intunewin files.

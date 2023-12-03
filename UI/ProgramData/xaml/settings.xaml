@@ -19,13 +19,9 @@
         <!-- Global Settings Title -->
         <TextBlock Text="Global Settings" FontSize="16" FontWeight="Bold" VerticalAlignment="Top" Margin="20, 20, 20, 10" Grid.Row="0" />
         
-        <!-- Tenant ID InputBox -->
-        <TextBlock Text="Tenant ID" Margin="20, 10" VerticalAlignment="Center" Grid.Row="1"/>
-        <TextBox x:Name="input_tenantID" Grid.Row="1" Margin="20, 10" VerticalAlignment="Center" HorizontalAlignment="Right" Width="300"/>
-
         <!-- Repo Path InputBox -->
-        <TextBlock Text="Repo Path" Margin="20, 10" VerticalAlignment="Center" Grid.Row="2"/>
-        <TextBox x:Name="input_repoPath" Grid.Row="2" Margin="20, 10" VerticalAlignment="Center" HorizontalAlignment="Right" Width="300"/>
+        <TextBlock Text="Repo Path" Margin="20, 10" VerticalAlignment="Center" Grid.Row="1"/>
+        <TextBox x:Name="input_repoPath" Grid.Row="1" Margin="20, 10" VerticalAlignment="Center" HorizontalAlignment="Right" Width="300"/>
 
         <!-- Create/Assign Required Install Group per App Checkbox -->
         <CheckBox x:Name="chk_CreateInstallGroup" Content="Create/Assign Required Install Group per App" Margin="20, 10" VerticalAlignment="Center" Grid.Row="3"/>

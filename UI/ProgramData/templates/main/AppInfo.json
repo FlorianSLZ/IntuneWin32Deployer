@@ -1,34 +1,25 @@
 {
-    "Name":  "",
-    "EvergreenName":  "",
+    "description":  "",
+    "installCommandLine":  "",
+    "InstallFile":  "",
     "Version":  "",
-    "Platform":  "",
-    "Channel":  "",
-    "Ring":  "",
-    "Release":  "",
-    "Architecture":  "",
-    "Type":  "",
-    "Language":  "",
-    "AppParams":  "",
-    "Publisher":  "scloud",
-    "InstallExperience": "system",
-    "InformationURL": "",
-    "Notes": "",
-    "InstallFile":  "Deploy-Application.exe",
-    "Installer":  "",
-    "InstallParameters":  "/qn",
-    "Description":  "",
-    "InstallCmdLine":  "Deploy-Application.exe -DeploymentType \"Install\" -DeployMode \"Silent\"",
-    "UninstallCmdLine":  "Deploy-Application.exe -DeploymentType \"Uninstall\" -DeployMode \"Silent\"",
-    "detection":  {
-        "Registry":  {
-            "Name":  "Version",
-            "KeyPath":  "HKEY_LOCAL_MACHINE\\SOFTWARE\\scloud\\Packages\\AppName",
-            "Type":  "String",
-            "DetectionType":  "equal",
-            "Value": "VersionNumber",
-            "RegistryDetectionOperator": "notConfigured",
-            "Check32BitRegOn64System":  false
-        }
-    }
+    "Type": "",
+    "minimumSupportedWindowsRelease":  "W10_2004",
+    "rules":  {
+        "ruleType": "detection",
+        "check32BitOn64System": false,
+        "keyPath": "HKEY_LOCAL_MACHINE\\SOFTWARE\\scloud\\Packages\\AppName",
+        "valueName": "Version",
+        "operationType": "string",
+        "operator": "equal",
+        "comparisonValue": "xx"
+    },
+    "uninstallCommandLine":  "",
+    "publisher":  "scloud",
+    "installExperience":  {
+                              "deviceRestartBehavior":  "suppress",
+                              "runAsAccount":  "system"
+                          },
+    "applicableArchitectures":  "x64",
+    "displayName":  ""
 }

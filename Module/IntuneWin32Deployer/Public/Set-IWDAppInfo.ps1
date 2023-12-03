@@ -38,13 +38,13 @@ function Set-IWDAppInfo{
     
     try{
 
-        $AppInfo_file = "$RepoPath\$($AppPackage.Name)\AppInfo.json"
+        $AppInfo_file = "$RepoPath\$($AppPackage.displayName)\AppInfo.json"
         $AppInfo = Get-Content $AppInfo_file -Raw | ConvertFrom-Json
 
         switch ($Type) {
             "choco"  {
 
-                $AppInfo.Name           = $AppPackage.Name
+                $AppInfo.displayName    = $AppPackage.displayName
                 $AppInfo.Version        = $AppPackage.Version
                 $AppInfo.Platform       = $AppPackage.Platform
                 $AppInfo.Channel        = $AppPackage.Channel
@@ -69,7 +69,7 @@ function Set-IWDAppInfo{
 
         
     }catch{
-        Write-Error "Error while processing $($AppInfo.Name) `n$_"
+        Write-Error "Error while processing $($AppInfo.displayName) `n$_"
     }
 
 }

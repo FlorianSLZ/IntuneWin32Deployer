@@ -51,12 +51,17 @@ function Add-IWDApp{
 
         switch ($Type) {
         "choco"  {
+
+            # Test local Chocolatey
+            Test-IWDLocalChocolatey
+
             # Chocolatey
-            $ChocoApp = choco search $AppName | Out-GridView -OutputMode Single -Title "Select Applications to add"
+            $ChocoSearch = choco search $AppName
+            $ChocoApp = $ChocoSearch | Out-GridView -OutputMode Single -Title "Select Applications to add"
             
             # parameter mapping
             $ChocoApp_ID = $($ChocoApp.split(' ')[0])
-            $detectionJSON = @"
+            $rulesJSON = @"
 {
     "ruleType": "detection",
     "path": "C:\\ProgramData\\chocolatey\\lib",
@@ -88,37 +93,45 @@ function Add-IWDApp{
             $ChocoApp_new = New-Object PsObject -Property @{ 
                 id = "$ChocoApp_ID"; 
                 Type = "choco"; 
-                Name = $Choco_Name;
+                displayName = $Choco_Name;
                 Version = "choco auto";
                 Description = $Choco_Description;
-                Detection = $detectionJSON;
-                InstallExperience = "system"
+                rules = $rulesJSON;
                 Dependency = "Chocolatey"
                 InstallFile = "install.ps1"
+                installCommandLine = "PowerShell.exe -ExecutionPolicy Bypass -File install.ps1"
+                uninstallCommandLine = "PowerShell.exe -ExecutionPolicy Bypass -File uninstall.ps1"
             }
-            
+
             # Create App localy
-            $NewApp = Save-IWDWin32App -Type choco -AppPackage $ChocoApp_new
+            Save-IWDWin32App -Type winget -AppPackage $ChocoApp_new
+                
 
             # xy added, wanna deploy?
             $deployYN = New-Object -ComObject Wscript.Shell
-            if($($deployYN.Popup("Chocolatey App *$ChocoApp_ID* added. `nDo you want to create the intunewin?",0,"Create App",64+4)) -eq 6){
-                # Trigger creation process
-                Publish-IWDWin32App $NewApp
-                Add-IWDChocolatey4Dependency
-                Publish-IWDWin32App -AppInfo $ChocoApp_new
+            if($($deployYN.Popup("Winget App *$AppName* added. `n`nDo you want to create and upload the intunewin?",0,"Create App",64+4)) -eq 6){
+                # Check/Create dependency
+                Add-IWDwinget4Dependency
+                
+                # Publish App
+                $NewApp = Get-IWDLocalApp -displayName $Choco_Name -Meta
+                Publish-IWDWin32App -AppInfo $NewApp
             }
 
             break
         }
             
         "winget"   {
+
+            # Test/install local winget
+            Test-IWDLocalWinget
+            
             # Winget
             $winget2add = winget search --id $AppName --exact --accept-source-agreements
             if($winget2add -like "*$AppName*"){
 
                 # parameter mapping
-                $detectionJSON = @"
+                $rulesJSON = @"
 {
     "ruleType": "detection",
     "check32BitOn64System": false,
@@ -142,27 +155,31 @@ function Add-IWDApp{
                 # Create App array
                 $winget_new = New-Object PsObject -Property @{ 
                     id = "$AppName"; 
-                    Type = "choco"; 
-                    Name = $winget_name;
+                    Type = "winget"; 
+                    displayName = $winget_name;
                     Version = "winget auto";
                     Description = $winget_Description;
-                    Detection = $detectionJSON;
-                    InstallExperience = "system"
+                    rules = $rulesJSON;
                     Dependency = "Windows Package Manager"
                     InstallFile = "install.ps1"
+                    installCommandLine = "PowerShell.exe -ExecutionPolicy Bypass -File install.ps1"
+                    uninstallCommandLine = "PowerShell.exe -ExecutionPolicy Bypass -File uninstall.ps1"
                 }
 
 
                 # Create App localy
-                $NewApp = Save-IWDWin32App -Type winget -AppPackage $winget_new
+                Save-IWDWin32App -Type winget -AppPackage $winget_new
+                
 
                 # xy added, wanna deploy?
                 $deployYN = New-Object -ComObject Wscript.Shell
-                if($($deployYN.Popup("Winget App *$AppName* added. `nDo you want to create the intunewin?",0,"Create App",64+4)) -eq 6){
-                    # Trigger creation process
-                    Publish-IWDWin32App $NewApp
-                    Add-IWDChocolatey4Dependency
-                    Publish-IWDWin32App -AppInfo $winget_new
+                if($($deployYN.Popup("Winget App *$AppName* added. `n`nDo you want to create and upload the intunewin?",0,"Create App",64+4)) -eq 6){
+                    # Check/Create dependency
+                    Add-IWDwinget4Dependency
+                    
+                    # Publish App
+                    $NewApp = Get-IWDLocalApp -displayName $winget_name -Meta
+                    Publish-IWDWin32App -AppInfo $NewApp
                 }
 
             }else{
@@ -176,7 +193,7 @@ function Add-IWDApp{
 
         
     }catch{
-        Write-Error "Error while processing $PropertyName1 `n$_"
+        Write-Error "Error while processing $AppName `n$_"
     }
 
 }

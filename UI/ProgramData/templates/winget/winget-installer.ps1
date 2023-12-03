@@ -1,14 +1,3 @@
-$localprograms = C:\ProgramData\chocolatey\choco.exe list
-if ($localprograms -like "*$AppInfo.id*"){
-    C:\ProgramData\chocolatey\choco.exe upgrade $AppInfo.id -y
-}else{
-    C:\ProgramData\chocolatey\choco.exe install $AppInfo.id -y
-}
-
-
-
-
-
 # resolve winget_exe
 $winget_exe = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe"
 if ($winget_exe.count -gt 1){

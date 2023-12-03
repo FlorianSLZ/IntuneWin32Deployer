@@ -1,4 +1,4 @@
-function Get-IntuneWin32AppRelationshipExistence {
+function Get-IntuneWin32AppRelationExistence {
     <#
     .SYNOPSIS
         Retrieve any existing supersedence and dependency (relations) configuration from an existing Win32 application.

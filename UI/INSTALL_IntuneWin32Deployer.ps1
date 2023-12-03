@@ -33,15 +33,13 @@ try{
     Write-Host "Sample apps files completed" -ForegroundColor green
 
     #   Create Startmenu shortcut
-    $targetPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-    $arguments = "-noexit -ExecutionPolicy Bypass -File ""$IWDPath\IntuneWin32Deployer-UI.ps1"""
+    $targetPath = "$IWDPath\start.cmd"
     $shortcutPath = [System.IO.Path]::Combine($env:APPDATA, "Microsoft\Windows\Start Menu\Programs\IntuneWin32Deployer.lnk")
     $iconPath = "$IWDPath\templates\IntuneWin32Deployer.ico"
 
     $WshShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WshShell.CreateShortcut($shortcutPath)
     $Shortcut.TargetPath = $targetPath
-    $Shortcut.Arguments = $arguments
     $Shortcut.IconLocation = $iconPath
     $Shortcut.Save()
 

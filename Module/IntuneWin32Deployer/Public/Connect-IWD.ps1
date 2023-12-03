@@ -57,8 +57,13 @@ function Connect-IWD {
         Connect-MSGraph -ClientSecret $ClientSecret -Quiet
 
     }else{
+        # Disconnect old session
+        if($(Get-MgContext).AppName){   
+            Write-Host "Kill old Graph Session"
+            Disconnect-Graph    
+        }
+
         Write-Verbose "Graph connection via user authentification"
-        Disconnect-Graph
         $MSGraph = Connect-MgGraph # -Scopes "User.Read.All","Group.ReadWrite.All"
         Write-Verbose $MSGraph
 

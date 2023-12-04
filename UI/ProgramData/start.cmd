@@ -1,1 +1,0 @@
-cmd /c PowerShell -Version 5 -ExecutionPolicy Bypass -File "%~DP0IntuneWin32Deployer-UI.ps1"

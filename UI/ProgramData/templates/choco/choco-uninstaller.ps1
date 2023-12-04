@@ -1,1 +1,0 @@
-C:\ProgramData\chocolatey\choco.exe uninstall $AppInfo.id -y

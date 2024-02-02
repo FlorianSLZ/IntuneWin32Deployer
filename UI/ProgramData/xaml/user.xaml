@@ -1,0 +1,39 @@
+<Window Title="Edit JSON Data" Height="500" Width="500" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/> 
+            <RowDefinition Height="Auto"/> 
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="10">
+
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="ClientId:" VerticalAlignment="Center" Width="80"/>
+                <TextBlock x:Name="text_ClientId" VerticalAlignment="Center" Width="400"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="TenantId:" VerticalAlignment="Center" Width="80"/>
+                <TextBlock x:Name="text_TenantId" VerticalAlignment="Center" Width="400"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Account:" VerticalAlignment="Center" Width="80"/>
+                <TextBlock x:Name="text_Account" VerticalAlignment="Center" Width="400"/>
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Scopes:" VerticalAlignment="Center" Width="80"/>
+                <TextBlock x:Name="text_Scopes" VerticalAlignment="Center" Width="400" TextWrapping="Wrap"/>
+            </StackPanel>            
+        </StackPanel>
+
+        <!-- Close button area -->
+        <StackPanel Grid.Row="1" Margin="10" HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <Button x:Name="button_LogOff" Width="100" Content="Logoff"/>
+                <Button x:Name="button_reAuth" Width="100" Content="Re-Authentificate"/>
+                <Button x:Name="button_Close" Width="100" Content="Close"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

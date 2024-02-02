@@ -1,28 +1,49 @@
 ﻿$PackageName = "WindowsPackageManager"
-$MSIXBundle = "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-$URL_msixbundle = "https://aka.ms/getwinget"
 
-$Path_local = "$Env:Programfiles\_MEM"
-Start-Transcript -Path "$Path_local\Log\$PackageName-install.log" -Force
+Start-Transcript -Path "$env:ProgramData\Microsoft\IntuneManagementExtension\Logs\$PackageName-install.log" -Force
 
-# Program/Installation folder
-$Folder_install = "$Path_local\Data\$PackageName"
-New-Item -Path $Folder_install -ItemType Directory -Force -Confirm:$false
+# GitHub API endpoint for PowerShell (7) releases
+$githubApiUrl = 'https://api.github.com/repos/PowerShell/PowerShell/releases/latest'
 
-# Download current winget MSIXBundle
-$wc = New-Object net.webclient
-$wc.Downloadfile($URL_msixbundle, "$Folder_install\$MSIXBundle")
+# Fetch the latest release details
+$release = Invoke-RestMethod -Uri $githubApiUrl
 
-# Install WinGet MSIXBundle 
-try{
-    Add-AppxProvisionedPackage -Online -PackagePath "$Folder_install\$MSIXBundle" -SkipLicense 
-    Write-Host "Installation of $PackageName finished"
-}catch{
-    Write-Error "Failed to install $PackageName!"
-} 
+# Find asset with .msi in the name and x64 in the name
+$asset = $release.assets | Where-Object { $_.name -like "*msi*" -and $_.name -like "*x64*" }
 
-# Install file cleanup
-Start-Sleep 3 # to unblock installation file
-Remove-Item -Path "$Folder_install" -Force -Recurse
+# Get the download URL and filename of the asset (assuming it's a MSI file)
+$downloadUrl = $asset.browser_download_url
+$filename = $asset.name
+
+# Download the latest release using .NET's System.Net.WebClient for faster download
+$webClient = New-Object System.Net.WebClient
+$webClient.DownloadFile($downloadUrl, $filename)
+
+# Install PowerShell 7
+Start-Process msiexec.exe -Wait -ArgumentList "/I $filename /qn"
+
+# Start a new PowerShell 7 session
+$pwshExecutable = "C:\Program Files\PowerShell\7\pwsh.exe"
+
+# Run a script block in PowerShell 7
+& $pwshExecutable -Command {
+    # Check if NuGet provider is installed
+    $provider = Get-PackageProvider NuGet -ErrorAction Ignore
+    if (-not $provider) {
+        Write-Host "Installing provider NuGet"
+        Find-PackageProvider -Name NuGet -ForceBootstrap -IncludeDependencies
+    }
+
+    # Install or update the Microsoft WinGet client module
+    Install-Module microsoft.winget.client -Force -AllowClobber
+
+    # Import the Microsoft WinGet client module
+    Import-Module microsoft.winget.client
+
+    # Repair the WinGet package manager
+    Repair-WinGetPackageManager
+
+}
+
 
 Stop-Transcript

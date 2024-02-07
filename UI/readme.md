@@ -1,4 +1,4 @@
-# INtuneWin32 Deployer UI
+# IntuneWin32 Deployer UI
 
 ## How to start
 1. Download the UI.zip

@@ -12,9 +12,11 @@ function Invoke-IWDLoginRequest {
     param ()
 
         # Check Session / MS Graph Connection
-        if(!$(Get-MgContext).AppName){   Connect-IWD    }
+        $CurrentMgContext = Get-MgContext
+
+        if(!$($CurrentMgContext.AppName)){   Connect-IWD    }
         else{
             # Refresh Token
-            Connect-MSIntuneGraph -TenantID $Global:AccessTokenTenantID -Refresh | Out-Null
+            Connect-MSIntuneGraph -TenantID $CurrentMgContext.TenantId -ClientID $CurrentMgContext.ClientID -Refresh | Out-Null
         }  
 }

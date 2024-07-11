@@ -64,11 +64,11 @@ function Connect-IWD {
         }
 
         Write-Verbose "Graph connection via user authentification"
-        $MSGraph = Connect-MgGraph # -Scopes "User.Read.All","Group.ReadWrite.All"
+        $MSGraph = Connect-MgGraph -Scopes "User.Read.All", "Device.Read.All", "DeviceManagementManagedDevices.ReadWrite.All", "DeviceManagementServiceConfig.ReadWrite.All", "GroupMember.ReadWrite.All" 
         Write-Verbose $MSGraph
 
-        $global:orgInfo = Invoke-MgGraphRequest -URI "https://graph.microsoft.com/v1.0/organization"
-        $MSIntuneGraph = Connect-MSIntuneGraph -TenantID $orgInfo.Value.id
+        $CurrentMgContext = Get-MgContext
+        $MSIntuneGraph = Connect-MSIntuneGraph -TenantID $CurrentMgContext.TenantId -ClientID $CurrentMgContext.ClientID
         Write-Verbose $MSIntuneGraph
 
     } 

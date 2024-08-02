@@ -38,7 +38,7 @@ This repository is divided into two parts. The module itself and its UI.
 
 | Module    | UI    |
 |----------------|-------------------------------|
-| [Module @GitHub](https://github.com/FlorianSLZ/IntuneWin32Deployer/tree/main/Module) |  [UI @GitHub](https://github.com/FlorianSLZ/IntuneWin32Deployer/tree/main/UI)  |
+| [Module @GitHub](https://github.com/FlorianSLZ/Intune-Win32-Deployer/tree/main/Module/IntuneWin32Deployer) |  [UI @GitHub](https://github.com/FlorianSLZ/Intune-Win32-Deployer/tree/main/UI)  |
 
 # Functions
 The "Intune Win32 Deployer" allows you to transform Windows Package Manager (winget) and Chocolatey installations for Intune into a Win32 application (intunewin) and upload it straight away to your MEM environment. If you want to do without the automatic upload, you can also just generate the intunewin files.
